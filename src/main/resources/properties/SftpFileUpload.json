@@ -1,0 +1,53 @@
+[
+  {
+    "title": "@@ftp.sftpFileUpload@@",
+    "properties": [
+      {
+        "name" : "id",
+        "label" : "@@ftp.id@@",
+        "type" : "textfield",
+        "required" : "True",
+        "regex_validation" : "^[a-zA-Z0-9_]+$",
+        "validation_message" : "@@form.fileupload.invalidId@@"
+      },
+      {
+        "name" : "label",
+        "label" : "@@ftp.label@@",
+        "type" : "textfield",
+        "required" : "True",
+        "value" : "FTP File Upload"
+      }
+    ]
+  },
+  {
+    "title": "Connection",
+    "properties": [
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "textfield"
+      },
+      {
+        "name": "username",
+        "label": "Username",
+        "type": "textfield"
+      },
+      {
+        "name": "password",
+        "label": "Password",
+        "type": "password"
+      },
+      {
+        "name": "remoteFolder",
+        "label": "Remote Folder",
+        "type": "textfield"
+      },
+      {
+        "name": "knownHostsFile",
+        "label": "Known Hosts File",
+        "type": "textfield",
+        "value": "/root/.ssh/known_hosts"
+      }
+    ]
+  }
+]
