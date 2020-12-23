@@ -70,7 +70,7 @@ public interface SftpUtils {
                         return folder;
                     }, String::concat);
 
-            LogUtil.info(getClass().getName(), "Storing file [" + file.getName() + "] in sftp server [" + path + "]");
+            LogUtil.info(getClass().getName(), "Storing file [" + file.getAbsolutePath() + "] in sftp server [" + path + "]");
 
             channelSftp.put(fileInputStream, path + "/" + file.getName());
         } catch (IOException | SftpException e) {
