@@ -8,6 +8,7 @@ import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
+import org.joget.commons.util.FileManager;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.Plugin;
 import org.joget.workflow.model.WorkflowAssignment;
@@ -46,7 +47,9 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
                 String[] headerValues = getHeaderValues(properties);
                 File file = getDataListRow(dataList, filters, getFileName(properties) + getFileFormat(), 0, headerValues);
                 storeFile(storageClient, file, remoteFolder);
-//                FileManager.deleteFile(file.getParentFile());
+                if(isDeleteTemporaryFile()) {
+                    FileManager.deleteFile(file.getParentFile());
+                }
             } else {
                 throw new KecakSftpException("File format is not supported");
             }
@@ -161,5 +164,9 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
                         .map(s -> AppUtil.processHashVariable(s, assignment, null, null))
                         .orElse(""))
                 .toArray(String[]::new);
+    }
+
+    protected boolean isDeleteTemporaryFile() {
+        return "true".equalsIgnoreCase(getPropertyString("deleteTemporaryFile"));
     }
 }

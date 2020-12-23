@@ -61,7 +61,18 @@
             "key": "value",
             "label": "Value"
           }
-
+        ]
+      },
+      {
+        "name": "deleteTemporaryFile",
+        "label": "@@ftp.deleteTemporaryFile@@",
+        "type": "checkbox",
+        "value": "true",
+        "options": [
+          {
+            "value": "true",
+            "label": ""
+          }
         ]
       }
     ]
