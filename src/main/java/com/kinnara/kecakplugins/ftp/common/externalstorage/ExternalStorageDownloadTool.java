@@ -5,11 +5,7 @@ import org.joget.plugin.base.DefaultApplicationPlugin;
 
 import java.util.Map;
 
-/**
- *
- * @param <T> external storage client
- */
-public abstract class ExternalStorageUploadTool<T> extends DefaultApplicationPlugin implements IExternalStorage<T> {
+public abstract class ExternalStorageDownloadTool<T> extends DefaultApplicationPlugin implements IExternalStorage<T> {
     @Override
     public final Object execute(Map properties) {
         try {

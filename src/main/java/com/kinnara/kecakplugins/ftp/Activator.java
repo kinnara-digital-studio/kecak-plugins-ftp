@@ -17,6 +17,7 @@ public class Activator implements BundleActivator {
         //Register plugin here
         registrationList.add(context.registerService(SftpFileUpload.class.getName(), new SftpFileUpload(), null));
         registrationList.add(context.registerService(DataListSftpUploadTool.class.getName(), new DataListSftpUploadTool(), null));
+        registrationList.add(context.registerService(SftpSpreadsheetFileDownloadTool.class.getName(), new SftpSpreadsheetFileDownloadTool(), null));
     }
 
     public void stop(BundleContext context) {

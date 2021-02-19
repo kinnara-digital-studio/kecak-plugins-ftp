@@ -1,9 +1,11 @@
 package com.kinnara.kecakplugins.ftp.common.sftp;
 
 import com.jcraft.jsch.*;
+import com.kinnarastudio.commons.Declutter;
 import org.joget.apps.app.dao.DatalistDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.DatalistDefinition;
+import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.apps.datalist.model.DataListCollection;
@@ -11,23 +13,28 @@ import org.joget.apps.datalist.model.DataListColumn;
 import org.joget.apps.datalist.model.DataListFilter;
 import org.joget.apps.datalist.service.DataListService;
 import org.joget.apps.form.model.Element;
+import org.joget.apps.form.model.Form;
 import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FileUtil;
+import org.joget.apps.form.service.FormUtil;
 import org.joget.commons.util.FileManager;
 import org.joget.commons.util.LogUtil;
+import org.joget.workflow.util.WorkflowUtil;
+import org.kecak.apps.form.model.DataJsonControllerHandler;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public interface SftpUtils {
-    String CSV_DELIMITER = ";";
+/**
+ * Class Extension / Mixin for Sftp
+ */
+public interface SftpUtils extends Declutter {
+    String getCsvDelimiter();
 
     default ChannelSftp generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws JSchException {
         JSch jsch = new JSch();
@@ -35,7 +42,7 @@ public interface SftpUtils {
         Session jschSession = jsch.getSession(username, host);
         jschSession.setPassword(password);
 
-        if(!isStrictHostKeyChecking) {
+        if (!isStrictHostKeyChecking) {
             Properties config = new Properties();
             config.put("StrictHostKeyChecking", "no");
             jschSession.setConfig(config);
@@ -46,7 +53,7 @@ public interface SftpUtils {
     }
 
     default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) {
-        if(!channelSftp.isConnected()) {
+        if (!channelSftp.isConnected()) {
             try {
                 channelSftp.connect();
             } catch (JSchException e) {
@@ -55,7 +62,7 @@ public interface SftpUtils {
         }
 
         // store file in bucket
-        try(InputStream fileInputStream = new FileInputStream(file)) {
+        try (InputStream fileInputStream = new FileInputStream(file)) {
             // create folder
             String path = Optional.of("/")
                     .map(remoteFolder::split)
@@ -66,11 +73,12 @@ public interface SftpUtils {
                         try {
                             channelSftp.mkdir(folder);
                             LogUtil.info(getClass().getName(), "Folder [" + folder + "] is created in remote server");
-                        } catch (SftpException ignored) {}
+                        } catch (SftpException ignored) {
+                        }
                         return folder;
                     }, String::concat);
 
-            LogUtil.info(getClass().getName(), "Storing file [" + file.getAbsolutePath() + "] in sftp server [" + path + "]");
+            LogUtil.info(getClass().getName(), "Storing file [" + file.getAbsolutePath() + "] into sftp server [" + path + "]");
 
             channelSftp.put(fileInputStream, path + "/" + file.getName());
         } catch (IOException | SftpException e) {
@@ -91,7 +99,25 @@ public interface SftpUtils {
 
     default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName) throws SftpException {
         String filePath = remoteFolder.replaceAll("/+", "/").replaceAll("/$", "") + "/" + fileName;
-        return channelSftp.get(filePath);
+        return loadFile(channelSftp, filePath);
+    }
+
+    /**
+     * @param channelSftp
+     * @param fullFilePath
+     * @return
+     * @throws SftpException
+     */
+    default InputStream loadFile(ChannelSftp channelSftp, String fullFilePath) throws SftpException {
+        if (!channelSftp.isConnected()) {
+            try {
+                channelSftp.connect();
+            } catch (JSchException e) {
+                LogUtil.error(getClass().getName(), e, e.getMessage());
+            }
+        }
+
+        return channelSftp.get(fullFilePath);
     }
 
     /**
@@ -157,20 +183,20 @@ public interface SftpUtils {
 
         String tempDirPath = FileManager.getBaseDirectory();
         File tempDir = new File(tempDirPath + UUID.randomUUID());
-        if(!tempDir.exists() && !tempDir.mkdir()) {
+        if (!tempDir.exists() && !tempDir.mkdir()) {
             throw new KecakSftpException("Error creating temporary directory [" + tempDirPath + "]");
         }
 
         File file = new File(tempDir, fileName);
-        try(PrintWriter writer = new PrintWriter(file)) {
+        try (PrintWriter writer = new PrintWriter(file)) {
             IntStream.iterate(0, i -> i + 1).limit(skipLines)
                     .boxed()
                     .map(i -> "")
                     .forEach(writer::println);
 
-            if(headerValues.length > 0) {
+            if (headerValues.length > 0) {
                 Optional.ofNullable(headerValues)
-                        .map(s -> String.join(CSV_DELIMITER, s))
+                        .map(s -> String.join(getCsvDelimiter(), s))
                         .ifPresent(writer::println);
             }
 
@@ -196,7 +222,7 @@ public interface SftpUtils {
         return Arrays.stream(line)
                 .map(this::processHashVariable)
                 .map(this::escapeCharacters)
-                .collect(Collectors.joining(CSV_DELIMITER));
+                .collect(Collectors.joining(getCsvDelimiter()));
     }
 
     default String escapeCharacters(String data) {
@@ -239,132 +265,75 @@ public interface SftpUtils {
         return AppUtil.processHashVariable(String.valueOf(content), null, null, null);
     }
 
-    /**
-     * Predicate not
-     *
-     * @param p
-     * @param <T>
-     * @return
-     */
-    default  <T> Predicate<T> not(Predicate<T> p) {
-        return (t) -> !p.test(t);
-    }
-
-    /**
-     * Can be used in {@link Optional#map(Function)} to "peek" in Optional
-     * Example : Optional.map(peekMap(o -> System.out.printl(o))
-     *
-     * @param consumer Consumer
-     * @param <T>
-     * @return
-     */
     @Nonnull
-    default <T> UnaryOperator<T> peekMap(@Nonnull final Consumer<T> consumer) {
-        return t -> {
-            consumer.accept(t);
-            return t;
-        };
-    }
+    default void processCsvFile(InputStream inputStream, Form form, boolean skipFirstRow, boolean commaAsThousands, final Map<String, String>[] excelProps, Map<String, String> defaultValues) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            br.lines().skip(skipFirstRow ? 1 : 0)
+                    .filter(l -> !l.trim().isEmpty())
+                    .forEach(line -> {
+                        LogUtil.info(getClass().getName(), "line [" + line + "]");
 
-    /**
-     * Throwable supplier
-     *
-     * @param throwableSupplier
-     * @param <R>
-     * @param <E>
-     * @return
-     */
-    default  <R, E extends Exception> ThrowableSupplier<R, E> throwableSupplier(ThrowableSupplier<R, E> throwableSupplier) {
-        return throwableSupplier;
-    }
+                        final FormData formData = new FormData();
 
-    /**
-     * Throwable function
-     *
-     * @param throwableFunction
-     * @param <T>
-     * @param <R>
-     * @param <E>
-     * @return
-     */
-    default  <T, R, E extends Exception> ThrowableFunction<T, R, ? extends E> throwableFunction(ThrowableFunction<T, R, ? extends E> throwableFunction) {
-        return throwableFunction;
-    }
+                        final String[] columns = line.split(getCsvDelimiter());
 
-    @FunctionalInterface
-    interface ThrowableSupplier<R, E extends Exception> extends Supplier<R> {
-        @Nullable
-        R getThrowable() throws E;
+                        for (Map<String, String> column : excelProps) {
+                            int columnNumber = Integer.parseInt(column.get("excelColNum"));
+                            if (columnNumber < columns.length) {
+                                boolean asNumber = "number".equalsIgnoreCase(column.get("colType"));
+                                String cellValue = asNumber ?
+                                        (commaAsThousands ?
+                                                columns[columnNumber].replaceAll(",", "") :
+                                                columns[columnNumber].replaceAll("\\.", "").replaceAll(",", ".")) :
+                                        columns[columnNumber];
 
-        @Nullable
-        default R get() {
-            try {
-                return getThrowable();
-            } catch (Exception e) {
-                LogUtil.error(getClass().getName(), e, e.getMessage());
-                return null;
-            }
-        }
+                                if (!cellValue.isEmpty()) {
+                                    Element element = FormUtil.findElement(column.get("field"), form, formData);
+                                    String fieldName = FormUtil.getElementParameterName(element);
+                                    formData.addRequestParameterValues(fieldName, new String[]{cellValue});
+                                }
+                            }
+                        }
 
-        default ThrowableSupplier<R, E> onException(Function<? super E, R> onException) {
-            try {
-                return this::getThrowable;
-            } catch (Exception e) {
-                Objects.requireNonNull(onException);
-                return () -> onException.apply((E) e);
-            }
+                        // implement default values
+                        defaultValues.forEach((k, v) -> {
+                            // for every empty field
+                            if (!formData.getRequestParams().containsKey(k)) {
+                                Element element = FormUtil.findElement(k, form, formData);
+                                String fieldName = FormUtil.getElementParameterName(element);
+                                formData.addRequestParameterValues(fieldName, new String[]{v});
+                            }
+                        });
+
+                        FormData resultFormData = submitForm(form, formData, false);
+                    });
+        } catch (IOException ex) {
+            LogUtil.error(getClass().getName(), ex, ex.getMessage());
         }
     }
 
-    /**
-     * Throwable version of {@link Function}.
-     * Returns null then exception is raised
-     *
-     * @param <T>
-     * @param <R>
-     * @param <E>
-     */
-    @FunctionalInterface
-    interface ThrowableFunction<T, R, E extends Exception> extends Function<T, R> {
+    default Form getForm(@Nonnull AppDefinition appDefinition, @Nonnull String formDefId, @Nonnull final FormData formData) throws KecakSftpException {
+        AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
+        final Form form = Optional.ofNullable(appService.viewDataForm(appDefinition.getAppId(), appDefinition.getVersion().toString(), formDefId, null, null, null, formData, null, null))
+                .orElseThrow(() -> new KecakSftpException("Form [" + formDefId + "] in app [" + appDefinition.getAppId() + "] version [" + appDefinition.getVersion() + "] not available"));
 
-        @Override
-        default R apply(T t) {
-            try {
-                return applyThrowable(t);
-            } catch (Exception e) {
-                LogUtil.error(getClass().getName(), e, e.getMessage());
-                return null;
-            }
+        // check form permission
+        if (!form.isAuthorize(formData)) {
+            throw new KecakSftpException("User [" + WorkflowUtil.getCurrentUsername() + "] doesn't have permission to open this form");
         }
 
-        R applyThrowable(T t) throws E;
+        formData.addRequestParameterValues(DataJsonControllerHandler.PARAMETER_DATA_JSON_CONTROLLER, new String[]{DataJsonControllerHandler.PARAMETER_DATA_JSON_CONTROLLER});
 
-        /**
-         * @param f
-         * @return
-         */
-        default Function<T, R> onException(Function<? super E, ? extends R> f) {
-            return (T a) -> {
-                try {
-                    return (R) applyThrowable(a);
-                } catch (Exception e) {
-                    return f.apply((E) e);
-                }
-            };
-        }
-
-        /**
-         * @param f
-         * @return
-         */
-        default Function<T, R> onException(BiFunction<? super T, ? super E, ? extends R> f) {
-            return (T a) -> {
-                try {
-                    return (R) applyThrowable(a);
-                } catch (Exception e) {
-                    return f.apply(a, (E) e);
-                }
-            };
-        }
+        return form;
     }
+
+    default FormData submitForm(@Nonnull Form form, @Nonnull FormData formData, boolean ignoreValidation) {
+        AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
+        String paramName = FormUtil.getElementParameterName(form);
+        formData.addRequestParameterValues(paramName + "_SUBMITTED", new String[]{"true"});
+
+        FormData resultFormData = appService.submitForm(form, formData, ignoreValidation);
+        return resultFormData;
+    }
+
 }

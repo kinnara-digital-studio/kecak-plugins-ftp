@@ -22,6 +22,8 @@ import java.util.stream.Stream;
  * @author aristo
  */
 public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSftp> implements SftpUtils {
+    public final static String CSV_DELIMITER = ";";
+
     @Override
     public String getName() {
         return getLabel() + getVersion();
@@ -168,5 +170,10 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
 
     protected boolean isDeleteTemporaryFile() {
         return "true".equalsIgnoreCase(getPropertyString("deleteTemporaryFile"));
+    }
+
+    @Override
+    public String getCsvDelimiter() {
+        return CSV_DELIMITER;
     }
 }

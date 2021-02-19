@@ -1,0 +1,152 @@
+[
+  {
+    "title": "SFTP Connection",
+    "properties": [
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "textfield",
+        "required": "true"
+      },
+      {
+        "name": "username",
+        "label": "Username",
+        "type": "textfield",
+        "required": "true"
+      },
+      {
+        "name": "password",
+        "label": "Password",
+        "type": "password"
+      },
+      {
+        "name": "fileName",
+        "label": "@@ftp.fileName@@",
+        "type": "textfield",
+        "required": "true"
+      },
+      {
+        "name": "knownHostsFile",
+        "label": "Known Hosts File",
+        "type": "textfield",
+        "value": "/root/.ssh/known_hosts",
+        "required": "true"
+      }
+    ]
+  },
+  {
+    "title": "@@ftp.formBinding@@",
+    "properties": [
+      {
+        "name": "fileFormat",
+        "label": "@@ftp.fileFormat@@",
+        "type": "radio",
+        "value": ".csv",
+        "required": "true",
+        "options": [
+          {
+            "value": ".csv",
+            "label": "@@ftp.fileFormat.csv@@"
+          }
+        ]
+      },
+      {
+        "name" : "formDefId",
+        "label" : "@@ftp.formDefId@@",
+        "type" : "selectbox",
+        "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options",
+        "required" : "true"
+      },
+      {
+        "name" : "fieldMapping",
+        "label" : "@@ftp.fieldMapping@@",
+        "type" : "grid",
+        "required" : "True",
+        "description" : "@@ftp.fieldMapping.description@@",
+        "columns" : [
+          {
+            "key" : "excelColNum",
+            "label": "@@ftp.colNum@@",
+            "required" : "true"
+          },
+          {
+            "key" : "field",
+            "label" : "@@ftp.formFieldName@@",
+            "required" : "true"
+          },
+          {
+            "key" : "colType",
+            "label" : "@@ftp.valueType@@",
+            "required" : "true",
+            "options" : [
+              {
+                "value" : "text",
+                "label" : "@@ftp.text@@"
+              },
+              {
+                "value" : "number",
+                "label" : "@@ftp.number@@"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name" : "defaultValues",
+        "label" : "@@ftp.defaultValues@@",
+        "type" : "grid",
+        "columns" : [
+          {
+            "key" : "field",
+            "label" : "@@ftp.formFieldName@@",
+            "required" : "true"
+          },
+          {
+            "key" : "value",
+            "label" : "@@ftp.value@@"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "@@ftp.statusVariable@@",
+    "properties": [
+      {
+        "name": "statusWorkflowVariable",
+        "label": "@@ftp.statusWorkflowVariable@@",
+        "type": "textfield",
+        "value": "status"
+      },
+      {
+        "name": "statusSucceed",
+        "label": "@@ftp.statusSucceed@@",
+        "type": "textfield",
+        "value": "succeed"
+      },
+      {
+        "name": "statusFailed",
+        "label": "@@ftp.statusFailed@@",
+        "type": "textfield",
+        "value": "failed"
+      }
+    ]
+  },
+  {
+    "title": "Security",
+    "properties": [
+      {
+        "name": "strictHostKeyChecking",
+        "label": "@@ftp.strictHostKeyChecking@@",
+        "value": "true",
+        "type": "checkbox",
+        "options": [
+          {
+            "value": "true",
+            "label": ""
+          }
+        ]
+      }
+    ]
+  }
+]

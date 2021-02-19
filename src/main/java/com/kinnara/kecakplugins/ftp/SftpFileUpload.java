@@ -41,7 +41,7 @@ public class SftpFileUpload extends ExternalStorageElement<ChannelSftp> implemen
     }
 
     @Override
-    protected void storeFile(ChannelSftp client, File file, Element element, FormData formData) throws ExternalStorageException {
+    protected void storeFile(ChannelSftp client, File file, Element element, FormData formData) {
         storeFile(client, file, getRemoteFolder(element), element, formData);
     }
 
@@ -133,5 +133,10 @@ public class SftpFileUpload extends ExternalStorageElement<ChannelSftp> implemen
     @Override
     public String getPropertyOptions() {
         return AppUtil.readPluginResource(getClassName(), "/properties/SftpFileUpload.json", null, true, "/messages/Ftp").replaceAll("\"", "'");
+    }
+
+    @Override
+    public String getCsvDelimiter() {
+        return ";";
     }
 }
