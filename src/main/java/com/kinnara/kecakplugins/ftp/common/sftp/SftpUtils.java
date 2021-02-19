@@ -34,30 +34,32 @@ import java.util.stream.Stream;
  * Class Extension / Mixin for Sftp
  */
 public interface SftpUtils extends Declutter {
-    String getCsvDelimiter();
+    default ChannelSftp generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
+        try {
+            JSch jsch = new JSch();
+            jsch.setKnownHosts(pathKnownHosts);
+            Session jschSession = jsch.getSession(username, host);
+            jschSession.setPassword(password);
 
-    default ChannelSftp generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws JSchException {
-        JSch jsch = new JSch();
-        jsch.setKnownHosts(pathKnownHosts);
-        Session jschSession = jsch.getSession(username, host);
-        jschSession.setPassword(password);
+            if (!isStrictHostKeyChecking) {
+                Properties config = new Properties();
+                config.put("StrictHostKeyChecking", "no");
+                jschSession.setConfig(config);
+            }
 
-        if (!isStrictHostKeyChecking) {
-            Properties config = new Properties();
-            config.put("StrictHostKeyChecking", "no");
-            jschSession.setConfig(config);
+            jschSession.connect();
+            return (ChannelSftp) jschSession.openChannel("sftp");
+        } catch (JSchException e) {
+            throw new KecakSftpException(e);
         }
-
-        jschSession.connect();
-        return (ChannelSftp) jschSession.openChannel("sftp");
     }
 
-    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) {
+    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) throws KecakSftpException {
         if (!channelSftp.isConnected()) {
             try {
                 channelSftp.connect();
             } catch (JSchException e) {
-                LogUtil.error(getClass().getName(), e, e.getMessage());
+                throw new KecakSftpException(e);
             }
         }
 
@@ -82,22 +84,22 @@ public interface SftpUtils extends Declutter {
 
             channelSftp.put(fileInputStream, path + "/" + file.getName());
         } catch (IOException | SftpException e) {
-            LogUtil.error(getClass().getName(), e, e.getMessage());
+            throw new KecakSftpException(e);
         }
     }
 
-    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder, Element element, FormData formData) {
+    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder, Element element, FormData formData) throws KecakSftpException {
         assert this instanceof Element;
         String path = remoteFolder.replaceAll("^\\./", "") + "/" + FileUtil.getUploadPath(element, formData.getPrimaryKeyValue()).replaceAll("^\\./", "").replaceAll("^.+wflow/", "");
         storeFile(channelSftp, file, path.replaceAll("/+", "/"));
     }
 
-    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName, Element element, FormData formData) throws SftpException {
+    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName, Element element, FormData formData) throws KecakSftpException {
         String path = remoteFolder.replaceAll("^\\./", "") + "/" + FileUtil.getUploadPath(element, formData.getPrimaryKeyValue()).replaceAll("^\\./", "").replaceAll("^.+wflow/", "");
         return loadFile(channelSftp, path, fileName);
     }
 
-    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName) throws SftpException {
+    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName) throws KecakSftpException {
         String filePath = remoteFolder.replaceAll("/+", "/").replaceAll("/$", "") + "/" + fileName;
         return loadFile(channelSftp, filePath);
     }
@@ -108,16 +110,20 @@ public interface SftpUtils extends Declutter {
      * @return
      * @throws SftpException
      */
-    default InputStream loadFile(ChannelSftp channelSftp, String fullFilePath) throws SftpException {
+    default InputStream loadFile(ChannelSftp channelSftp, String fullFilePath) throws KecakSftpException {
         if (!channelSftp.isConnected()) {
             try {
                 channelSftp.connect();
             } catch (JSchException e) {
-                LogUtil.error(getClass().getName(), e, e.getMessage());
+                throw new KecakSftpException(e);
             }
         }
 
-        return channelSftp.get(fullFilePath);
+        try {
+            return channelSftp.get(fullFilePath);
+        } catch (SftpException e) {
+            throw new KecakSftpException(e);
+        }
     }
 
     /**
@@ -173,7 +179,7 @@ public interface SftpUtils extends Declutter {
      */
 
     @Nonnull
-    default File getDataListRow(@Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues) throws KecakSftpException {
+    default File getDataListRow(@Nonnull SftpTool pluginTool, @Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues) throws KecakSftpException {
         getCollectFilters(dataList, filters);
 
         DataListCollection<Map<String, Object>> rows = dataList.getRows();
@@ -196,7 +202,7 @@ public interface SftpUtils extends Declutter {
 
             if (headerValues.length > 0) {
                 Optional.ofNullable(headerValues)
-                        .map(s -> String.join(getCsvDelimiter(), s))
+                        .map(s -> String.join(pluginTool.getCsvDelimiter(), s))
                         .ifPresent(writer::println);
             }
 
@@ -209,7 +215,7 @@ public interface SftpUtils extends Declutter {
                             .map(c -> formatValue(dataList, m, c))
                             .map(String::valueOf)
                             .toArray(String[]::new))
-                    .map(this::processLine)
+                    .map(s -> processLine(pluginTool.getCsvDelimiter(), s))
                     .forEach(writer::println);
         } catch (FileNotFoundException e) {
             throw new KecakSftpException(e);
@@ -218,11 +224,11 @@ public interface SftpUtils extends Declutter {
         return file;
     }
 
-    default String processLine(String[] line) {
+    default String processLine(String columnDelimiter, String[] line) {
         return Arrays.stream(line)
                 .map(this::processHashVariable)
                 .map(this::escapeCharacters)
-                .collect(Collectors.joining(getCsvDelimiter()));
+                .collect(Collectors.joining(columnDelimiter));
     }
 
     default String escapeCharacters(String data) {
@@ -266,16 +272,16 @@ public interface SftpUtils extends Declutter {
     }
 
     @Nonnull
-    default void processCsvFile(InputStream inputStream, Form form, boolean skipFirstRow, boolean commaAsThousands, final Map<String, String>[] excelProps, Map<String, String> defaultValues) {
+    default void processCsvFile(SftpTool pluginTool, InputStream inputStream, Form form, int skipLines, boolean commaAsThousands, final Map<String, String>[] excelProps, Map<String, String> defaultValues) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            br.lines().skip(skipFirstRow ? 1 : 0)
+            br.lines().skip(skipLines)
                     .filter(l -> !l.trim().isEmpty())
                     .forEach(line -> {
                         LogUtil.info(getClass().getName(), "line [" + line + "]");
 
                         final FormData formData = new FormData();
 
-                        final String[] columns = line.split(getCsvDelimiter());
+                        final String[] columns = line.split(pluginTool.getCsvDelimiter());
 
                         for (Map<String, String> column : excelProps) {
                             int columnNumber = Integer.parseInt(column.get("excelColNum"));
@@ -335,5 +341,4 @@ public interface SftpUtils extends Declutter {
         FormData resultFormData = appService.submitForm(form, formData, ignoreValidation);
         return resultFormData;
     }
-
 }

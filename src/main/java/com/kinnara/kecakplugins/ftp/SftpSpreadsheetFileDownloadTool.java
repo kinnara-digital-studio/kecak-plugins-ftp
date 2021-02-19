@@ -6,6 +6,7 @@ import com.jcraft.jsch.SftpException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.SftpTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
  * Download CSV files from SFTP server to local
  *
  */
-public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool<ChannelSftp> implements SftpUtils {
+public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool<ChannelSftp> implements SftpUtils, SftpTool {
     @Override
     protected void execute(ChannelSftp storageClient, Map<String, Object> properties) {
         WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
@@ -38,12 +39,12 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
         try {
             AppDefinition appDefinition = AppUtil.getCurrentAppDefinition();
             Form form = getForm(appDefinition, getFormDefId(), new FormData());
-            processCsvFile(loadFile(storageClient, getFileName(properties)), form, true, true, getCellMapping(properties), getDefaultValues(properties));
+            processCsvFile(this, loadFile(storageClient, getFileName(properties)), form, getSkipLines(), true, getCellMapping(properties), getDefaultValues(properties));
 
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusSucceed());
             }
-        } catch (SftpException | KecakSftpException e) {
+        } catch (KecakSftpException e) {
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusFailed());
             }
@@ -55,7 +56,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     public ChannelSftp generateClient(Plugin plugin) throws ExternalStorageException {
         try {
             return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
-        } catch (JSchException e) {
+        } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -154,7 +155,15 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
 
     @Override
     public String getCsvDelimiter() {
-        return ",";
+        return getPropertyString("columnDelimiter");
+    }
+
+    protected int getSkipLines() {
+        try {
+            return Integer.parseInt(getPropertyString("skipLines"));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     protected String getStatusWorkflowVariable() {

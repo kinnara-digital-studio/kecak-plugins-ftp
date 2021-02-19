@@ -51,6 +51,23 @@
         ]
       },
       {
+        "name": "columnDelimiter",
+        "label": "@@ftp.columnDelimiter@@",
+        "type": "textfield",
+        "value": ";",
+        "required": "true"
+      },
+
+      {
+        "name" : "skipLines",
+        "label" : "@@ftp.skipLines@@",
+        "type" : "textfield",
+        "required" : "true",
+        "value": "0",
+        "regex_validation": "[0-9]+",
+        "validation_message": "Numbers only"
+      },
+      {
         "name" : "formDefId",
         "label" : "@@ftp.formDefId@@",
         "type" : "selectbox",

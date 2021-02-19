@@ -5,6 +5,7 @@ import com.jcraft.jsch.JSchException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.SftpTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
@@ -21,7 +22,7 @@ import java.util.stream.Stream;
 /**
  * @author aristo
  */
-public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSftp> implements SftpUtils {
+public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSftp> implements SftpUtils, SftpTool {
     public final static String CSV_DELIMITER = ";";
 
     @Override
@@ -47,7 +48,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
                 DataList dataList = getDataList(getPropertyString("dataListId"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues(properties);
-                File file = getDataListRow(dataList, filters, getFileName(properties) + getFileFormat(), 0, headerValues);
+                File file = getDataListRow(this, dataList, filters, getFileName(properties) + getFileFormat(), 0, headerValues);
                 storeFile(storageClient, file, remoteFolder);
                 if(isDeleteTemporaryFile()) {
                     FileManager.deleteFile(file.getParentFile());
@@ -79,7 +80,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
     public ChannelSftp generateClient(Plugin plugin) throws ExternalStorageException {
         try {
             return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
-        } catch (JSchException e) {
+        } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -174,6 +175,6 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
 
     @Override
     public String getCsvDelimiter() {
-        return CSV_DELIMITER;
+        return getPropertyString("columnDelimiter");
     }
 }

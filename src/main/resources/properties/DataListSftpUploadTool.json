@@ -53,6 +53,13 @@
         ]
       },
       {
+        "name": "columnDelimiter",
+        "label":"@@ftp.columnDelimiter@@",
+        "type": "textfield",
+        "value": ";",
+        "required": "true"
+      },
+      {
         "name": "headerValues",
         "label": "@@ftp.headerValues@@",
         "type": "grid",

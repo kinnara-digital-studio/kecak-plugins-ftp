@@ -2,9 +2,9 @@ package com.kinnara.kecakplugins.ftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageElement;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
@@ -26,7 +26,7 @@ public class SftpFileUpload extends ExternalStorageElement<ChannelSftp> implemen
         ExternalStorageElement<ChannelSftp> element = (ExternalStorageElement<ChannelSftp>) plugin;
         try {
             return generateSftpChannel(getHost(element), getUsername(element), getPassword(element), getKnownHostsFile(element), true);
-        } catch (JSchException e) {
+        } catch (KecakSftpException e) {
           throw new ExternalStorageException(e);
         }
     }
@@ -35,14 +35,18 @@ public class SftpFileUpload extends ExternalStorageElement<ChannelSftp> implemen
     protected InputStream loadFile(ChannelSftp client, Element element, FormData formData, String fileName) throws ExternalStorageException {
         try {
             return loadFile(client, getRemoteFolder(element), fileName, element, formData);
-        } catch (SftpException e) {
+        } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
     }
 
     @Override
-    protected void storeFile(ChannelSftp client, File file, Element element, FormData formData) {
-        storeFile(client, file, getRemoteFolder(element), element, formData);
+    protected void storeFile(ChannelSftp client, File file, Element element, FormData formData) throws ExternalStorageException {
+        try {
+            storeFile(client, file, getRemoteFolder(element), element, formData);
+        } catch (KecakSftpException e) {
+            throw new ExternalStorageException(e);
+        }
     }
 
     @Override
@@ -133,10 +137,5 @@ public class SftpFileUpload extends ExternalStorageElement<ChannelSftp> implemen
     @Override
     public String getPropertyOptions() {
         return AppUtil.readPluginResource(getClassName(), "/properties/SftpFileUpload.json", null, true, "/messages/Ftp").replaceAll("\"", "'");
-    }
-
-    @Override
-    public String getCsvDelimiter() {
-        return ";";
     }
 }
