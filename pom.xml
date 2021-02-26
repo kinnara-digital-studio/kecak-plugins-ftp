@@ -8,9 +8,9 @@
     <name>kecak-plugins-ftp</name>
     <url>http://www.kecak.org</url>
     <scm>
-        <connection>scm:git:ssh://git@github.com:kinnara-digital-studio/kecak-plugins-ftp.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:kinnara-digital-studio/kecak-plugins-ftp.git</developerConnection>
-        <url>ssh://git@github.com:kinnara-digital-studio/kecak-workflow.git</url>
+        <connection>scm:git:ssh://git@gitlab.com:kinnarastudio/kecak-plugins-ftp.git</connection>
+        <developerConnection>scm:git:ssh://git@gitlab.com:kinnarastudio/kecak-plugins-ftp.git</developerConnection>
+        <url>ssh://git@gitlab.com:kinnarastudio/kecak-plugins-ftp.git</url>
     </scm>
     <build>
         <plugins>
