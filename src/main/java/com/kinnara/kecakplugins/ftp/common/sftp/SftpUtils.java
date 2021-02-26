@@ -80,9 +80,10 @@ public interface SftpUtils extends Declutter {
                         return folder;
                     }, String::concat);
 
-            LogUtil.info(getClass().getName(), "Storing file [" + file.getAbsolutePath() + "] into sftp server [" + path + "]");
+            String targetFullPath = path + "/" + file.getName();
 
-            channelSftp.put(fileInputStream, path + "/" + file.getName());
+            LogUtil.info(getClass().getName(), "Storing file [" + file.getAbsolutePath() + "] into sftp server [" + targetFullPath + "]");
+            channelSftp.put(fileInputStream, targetFullPath);
         } catch (IOException | SftpException e) {
             throw new KecakSftpException(e);
         }
