@@ -123,7 +123,7 @@ public interface SftpUtils extends Declutter {
         try {
             return channelSftp.get(fullFilePath);
         } catch (SftpException e) {
-            throw new KecakSftpException(e);
+            throw new KecakSftpException(e.getMessage() + " [" + fullFilePath + "]", e);
         }
     }
 

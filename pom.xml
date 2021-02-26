@@ -7,6 +7,11 @@
     <version>1.0.0</version>
     <name>kecak-plugins-ftp</name>
     <url>http://www.kecak.org</url>
+    <scm>
+        <connection>scm:git:ssh://git@github.com:kinnara-digital-studio/kecak-plugins-ftp.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:kinnara-digital-studio/kecak-plugins-ftp.git</developerConnection>
+        <url>ssh://git@github.com:kinnara-digital-studio/kecak-workflow.git</url>
+    </scm>
     <build>
         <plugins>
             <plugin>
@@ -51,6 +56,26 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>true</doCheck>
+                    <doUpdate>true</doUpdate>
+                    <revisionOnScmFailure>0</revisionOnScmFailure>
+                    <shortRevisionLength>8</shortRevisionLength>
+                    <timestampFormat>{0,date,yyyy}</timestampFormat>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
@@ -71,6 +96,7 @@
                 </configuration>
             </plugin>
         </plugins>
+        <finalName>$\{project.artifactId}-$\{project.version}-r$\{buildNumber}</finalName>
     </build>
     <dependencies>
         <dependency>
