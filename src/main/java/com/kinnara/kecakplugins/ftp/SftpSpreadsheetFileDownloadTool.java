@@ -2,7 +2,6 @@ package com.kinnara.kecakplugins.ftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
@@ -37,7 +36,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
         String statusWorkflowVariable = getStatusWorkflowVariable();
 
         try {
-            AppDefinition appDefinition = AppUtil.getCurrentAppDefinition();
+            AppDefinition appDefinition = (AppDefinition) properties.get("appDef");
             Form form = getForm(appDefinition, getFormDefId(), new FormData());
             processCsvFile(this, loadFile(storageClient, getFileName(properties)), form, getSkipLines(), true, getCellMapping(properties), getDefaultValues(properties));
 
