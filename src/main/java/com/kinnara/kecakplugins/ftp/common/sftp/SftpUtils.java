@@ -321,6 +321,15 @@ public interface SftpUtils extends Declutter {
 
     default Form getForm(@Nonnull AppDefinition appDefinition, @Nonnull String formDefId, @Nonnull final FormData formData) throws KecakSftpException {
         AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
+
+        if(appService == null) {
+            throw new KecakSftpException("Error retrieving appService");
+        }
+
+        if(appDefinition.getAppId() == null || appDefinition.getVersion() == null) {
+            throw new KecakSftpException("Error retrieving appDefinition");
+        }
+
         final Form form = Optional.ofNullable(appService.viewDataForm(appDefinition.getAppId(), appDefinition.getVersion().toString(), formDefId, null, null, null, formData, null, null))
                 .orElseThrow(() -> new KecakSftpException("Form [" + formDefId + "] in app [" + appDefinition.getAppId() + "] version [" + appDefinition.getVersion() + "] not available"));
 
