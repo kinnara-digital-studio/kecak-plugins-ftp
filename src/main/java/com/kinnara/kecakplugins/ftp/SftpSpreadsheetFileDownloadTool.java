@@ -37,6 +37,10 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
 
         try {
             AppDefinition appDefinition = (AppDefinition) properties.get("appDef");
+            if(appDefinition == null && (appDefinition = AppUtil.getCurrentAppDefinition()) == null) {
+                throw new KecakSftpException("Property [appDef] is null");
+            }
+
             Form form = getForm(appDefinition, getFormDefId(), new FormData());
             processCsvFile(this, loadFile(storageClient, getFileName(properties)), form, getSkipLines(), true, getCellMapping(properties), getDefaultValues(properties));
 
