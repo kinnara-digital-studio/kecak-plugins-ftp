@@ -14,10 +14,13 @@ public class Activator implements BundleActivator {
     public void start(BundleContext context) {
         registrationList = new ArrayList<ServiceRegistration>();
 
-        //Register plugin here
-        registrationList.add(context.registerService(SftpFileUpload.class.getName(), new SftpFileUpload(), null));
+        // SFTP
+        registrationList.add(context.registerService(SftpFileUploadElement.class.getName(), new SftpFileUploadElement(), null));
         registrationList.add(context.registerService(DataListSftpUploadTool.class.getName(), new DataListSftpUploadTool(), null));
         registrationList.add(context.registerService(SftpSpreadsheetFileDownloadTool.class.getName(), new SftpSpreadsheetFileDownloadTool(), null));
+
+        // FTP
+        registrationList.add(context.registerService(FtpFileDownloadTool.class.getName(), new FtpFileDownloadTool(), null));
     }
 
     public void stop(BundleContext context) {

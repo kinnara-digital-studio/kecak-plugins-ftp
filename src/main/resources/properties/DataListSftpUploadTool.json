@@ -89,17 +89,17 @@
     "properties": [
       {
         "name": "host",
-        "label": "Host",
+        "label": "@@ftp.host@@",
         "type": "textfield"
       },
       {
         "name": "username",
-        "label": "Username",
+        "label": "@@ftp.username@@",
         "type": "textfield"
       },
       {
         "name": "password",
-        "label": "Password",
+        "label": "@@ftp.password@@",
         "type": "password"
       },
       {

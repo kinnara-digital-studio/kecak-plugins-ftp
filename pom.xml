@@ -126,7 +126,12 @@
         <dependency>
             <groupId>com.kinnarastudio</groupId>
             <artifactId>kinnara-commons</artifactId>
-            <version>1.2.2</version>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.8.0</version>
         </dependency>
         <!-- End change plugin specific dependencies here -->
     </dependencies>

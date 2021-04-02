@@ -41,14 +41,14 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
     }
 
     @Override
-    public void execute(ChannelSftp storageClient, Map<String, Object> properties) {
+    public void execute(ChannelSftp storageClient) {
         try {
             if(".csv".equalsIgnoreCase(getFileFormat())) {
-                String remoteFolder = getRemoteFolder(properties);
+                String remoteFolder = getRemoteFolder();
                 DataList dataList = getDataList(getPropertyString("dataListId"));
                 Map<String, List<String>> filters = getDataListFilter();
-                String[] headerValues = getHeaderValues(properties);
-                File file = getDataListRow(this, dataList, filters, getFileName(properties) + getFileFormat(), 0, headerValues);
+                String[] headerValues = getHeaderValues();
+                File file = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
                 storeFile(storageClient, file, remoteFolder);
                 if(isDeleteTemporaryFile()) {
                     FileManager.deleteFile(file.getParentFile());
@@ -104,19 +104,19 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
     }
 
     protected String getHost() {
-        return getPropertyString("host");
+        return String.valueOf(getProperties().get("host"));
     }
 
     protected String getPassword() {
-        return getPropertyString("password");
+        return String.valueOf(getProperties().get("password"));
     }
 
     protected String getUsername() {
-        return getPropertyString("username");
+        return String.valueOf(getProperties().get("username"));
     }
 
     protected String getKnownHostsFile() {
-        return getPropertyString("getKnownHostsFile");
+        return String.valueOf(getProperties().get("getKnownHostsFile"));
     }
 
     /**
@@ -125,11 +125,11 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
      * @return
      */
     protected String getFileFormat() {
-        return getPropertyString("fileFormat");
+        return String.valueOf(getProperties().get("fileFormat"));
     }
 
-    protected String getFileName(Map properties) {
-        return String.valueOf(properties.get("fileName"));
+    protected String getFileName() {
+        return String.valueOf(getProperties().get("fileName"));
     }
 
     protected Map<String, List<String>> getDataListFilter() {
@@ -144,19 +144,19 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
         return filters;
     }
 
-    protected String getRemoteFolder(Map<String, Object> properties) {
-        return String.valueOf(properties.get("remoteFolder"));
+    protected String getRemoteFolder() {
+        return String.valueOf(getProperties().get("remoteFolder"));
     }
 
     protected boolean isStrictHostKeyChecking() {
         return "true".equalsIgnoreCase(getPropertyString("strictHostKeyChecking"));
     }
 
-    protected String[] getHeaderValues(Map<String, Object> properties) {
-        WorkflowAssignment assignment = (WorkflowAssignment) properties.get("workflowAssignment");
+    protected String[] getHeaderValues() {
+        WorkflowAssignment assignment = (WorkflowAssignment) getProperties().get("workflowAssignment");
 
         return Optional.of("headerValues")
-                .map(properties::get)
+                .map(getProperties()::get)
                 .map(o -> (Object[]) o)
                 .map(Arrays::stream)
                 .orElseGet(Stream::empty)

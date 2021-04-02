@@ -1,0 +1,46 @@
+[
+  {
+    "title": "@@ftp.ftpFileDownload@@",
+    "properties": [
+      {
+        "name": "host",
+        "label": "@@ftp.host@@",
+        "type": "textfield"
+      },
+      {
+        "name": "username",
+        "label": "@@ftp.username@@",
+        "type": "textfield"
+      },
+      {
+        "name": "password",
+        "label": "@@ftp.password@@",
+        "type": "password"
+      },
+      {
+        "name": "remoteFile",
+        "label": "@@ftp.remoteFile@@",
+        "type": "textfield"
+      }
+    ]
+  },
+  {
+    "title": "@@ftp.downloadResult@@",
+    "properties": [
+      {
+        "name": "formDefId",
+        "label": "@@ftp.formDefId@@",
+        "type": "selectbox",
+        "required": "true",
+        "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options"
+      },
+      {
+        "name": "fileUploadField",
+        "label": "@@ftp.fileUploadField@@",
+        "description": "@@ftp.fileUploadField.desc@@",
+        "type": "textfield",
+        "required": "true"
+      }
+    ]
+  }
+]

@@ -19,6 +19,7 @@ import org.joget.apps.form.service.FileUtil;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.commons.util.FileManager;
 import org.joget.commons.util.LogUtil;
+import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.util.WorkflowUtil;
 import org.kecak.apps.form.model.DataJsonControllerHandler;
 import org.springframework.context.ApplicationContext;

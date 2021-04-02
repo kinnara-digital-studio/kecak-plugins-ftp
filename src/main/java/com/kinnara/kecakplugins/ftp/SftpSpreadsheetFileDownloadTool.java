@@ -30,7 +30,8 @@ import java.util.stream.Stream;
  */
 public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool<ChannelSftp> implements SftpUtils, SftpTool {
     @Override
-    protected void execute(ChannelSftp storageClient, Map<String, Object> properties) {
+    protected void execute(ChannelSftp storageClient) {
+        Map<String, Object> properties = getProperties();
         WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
         WorkflowAssignment workflowAssignment = (WorkflowAssignment) properties.get("workflowAssignment");
         String statusWorkflowVariable = getStatusWorkflowVariable();

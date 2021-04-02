@@ -23,7 +23,7 @@ import java.util.*;
  *
  * @param <T> External storage client
  */
-public abstract class ExternalStorageElement<T> extends Element implements IExternalStorage<T>, FormBuilderPaletteElement, FileDownloadSecurity,PluginWebSupport {
+public abstract class ExternalStorageFileElement<T> extends Element implements IExternalStorage<T>, FormBuilderPaletteElement, FileDownloadSecurity,PluginWebSupport {
     @Override
     public final String getFormBuilderTemplate() {
         return "<label class='label'>" + getLabel() + "</label><input type='file' />";
@@ -182,7 +182,7 @@ public abstract class ExternalStorageElement<T> extends Element implements IExte
             Element element = FormUtil.findElement(elementId, form, formData);
             T client = null;
             try {
-                client = generateClient((ExternalStorageElement<T>) element);
+                client = generateClient(element);
                 connect(client);
 
                 // send file to response

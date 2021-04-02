@@ -10,11 +10,15 @@ import java.util.Map;
  * @param <T> external storage client
  */
 public abstract class ExternalStorageUploadTool<T> extends DefaultApplicationPlugin implements IExternalStorage<T> {
+    private Map<String, Object> properties;
+
     @Override
     public final Object execute(Map properties) {
+        this.properties = properties;
+
         try {
             T storageClient = generateClient(this);
-            execute(storageClient, properties);
+            execute(storageClient);
         } catch (ExternalStorageException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
@@ -22,5 +26,9 @@ public abstract class ExternalStorageUploadTool<T> extends DefaultApplicationPlu
         return null;
     }
 
-    protected abstract void execute(T storageClient, Map<String, Object> properties);
+    public final Map<String, Object> getProperties() {
+        return this.properties;
+    }
+
+    protected abstract void execute(T storageClient);
 }

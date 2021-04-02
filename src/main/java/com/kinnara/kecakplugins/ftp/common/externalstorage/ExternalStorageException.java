@@ -8,4 +8,8 @@ public class ExternalStorageException extends Exception {
     public ExternalStorageException(Throwable cause) {
         super(cause);
     }
+
+    public ExternalStorageException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
