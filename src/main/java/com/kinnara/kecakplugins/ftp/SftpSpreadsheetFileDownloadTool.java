@@ -181,4 +181,8 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     protected String getStatusFailed() {
         return getPropertyString("statusFailed");
     }
+
+    protected boolean isDebug() {
+        return "true".equalsIgnoreCase(getPropertyString("debug"));
+    }
 }

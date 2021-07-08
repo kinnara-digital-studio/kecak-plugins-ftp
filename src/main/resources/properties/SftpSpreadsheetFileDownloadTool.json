@@ -163,6 +163,18 @@
             "label": ""
           }
         ]
+      },
+      {
+        "name": "debug",
+        "label": "Debug",
+        "value": "true",
+        "type": "checkbox",
+        "options": [
+          {
+            "value": "true",
+            "label": ""
+          }
+        ]
       }
     ]
   }

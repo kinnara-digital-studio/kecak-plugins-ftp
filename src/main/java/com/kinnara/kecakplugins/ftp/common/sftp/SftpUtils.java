@@ -48,6 +48,8 @@ public interface SftpUtils extends Declutter {
                 jschSession.setConfig(config);
             }
 
+            LogUtil.info(getClass().getName(), "Connecting to SFTP channel host [" + host + "] user [" + username + "]");
+
             jschSession.connect();
             return (ChannelSftp) jschSession.openChannel("sftp");
         } catch (JSchException e) {
@@ -122,6 +124,7 @@ public interface SftpUtils extends Declutter {
         }
 
         try {
+            LogUtil.info(getClass().getName(), "Loading file from sftp server [" + fullFilePath + "]");
             return channelSftp.get(fullFilePath);
         } catch (SftpException e) {
             throw new KecakSftpException(e.getMessage() + " [" + fullFilePath + "]", e);
@@ -279,7 +282,7 @@ public interface SftpUtils extends Declutter {
             br.lines().skip(skipLines)
                     .filter(l -> !l.trim().isEmpty())
                     .forEach(line -> {
-                        LogUtil.info(getClass().getName(), "line [" + line + "]");
+                        LogUtil.info(getClass().getName(), "Processing csv file line [" + line + "]");
 
                         final FormData formData = new FormData();
 
