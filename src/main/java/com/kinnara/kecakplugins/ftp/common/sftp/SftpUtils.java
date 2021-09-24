@@ -61,6 +61,7 @@ public interface SftpUtils extends Declutter {
         if (!channelSftp.isConnected()) {
             try {
                 channelSftp.connect();
+                LogUtil.info(getClass().getName(), "storeFile : Connected to server");
             } catch (JSchException e) {
                 throw new KecakSftpException(e);
             }
@@ -89,6 +90,11 @@ public interface SftpUtils extends Declutter {
             channelSftp.put(fileInputStream, targetFullPath);
         } catch (IOException | SftpException e) {
             throw new KecakSftpException(e);
+        } finally {
+            if(channelSftp.isConnected()) {
+                LogUtil.info(getClass().getName(), "storeFile : Disconnecting from server");
+                channelSftp.disconnect();
+            }
         }
     }
 
@@ -118,6 +124,7 @@ public interface SftpUtils extends Declutter {
         if (!channelSftp.isConnected()) {
             try {
                 channelSftp.connect();
+                LogUtil.info(getClass().getName(), "loadFile : Connected to server");
             } catch (JSchException e) {
                 throw new KecakSftpException(e);
             }
@@ -128,6 +135,11 @@ public interface SftpUtils extends Declutter {
             return channelSftp.get(fullFilePath);
         } catch (SftpException e) {
             throw new KecakSftpException(e.getMessage() + " [" + fullFilePath + "]", e);
+        } finally {
+            if(channelSftp.isConnected()) {
+                LogUtil.info(getClass().getName(), "loadFile : Disconnecting from server");
+                channelSftp.disconnect();
+            }
         }
     }
 
