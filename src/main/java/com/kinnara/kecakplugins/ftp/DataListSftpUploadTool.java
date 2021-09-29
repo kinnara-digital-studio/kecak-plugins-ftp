@@ -50,7 +50,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
                 String[] headerValues = getHeaderValues();
                 File file = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
                 if (!storageClient.isConnected()) {
-                    storageClient.connect();
+                    storageClient.connect(TIMEOUT);
                     LogUtil.info(getClass().getName(), "storeFile : Connected to server");
                 }
 
@@ -94,7 +94,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
     public void connect(ChannelSftp client) throws ExternalStorageException {
         try {
             if(!client.isConnected()) {
-                client.connect();
+                client.connect(TIMEOUT);
             }
         } catch (JSchException e) {
             throw new ExternalStorageException(e);

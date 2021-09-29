@@ -35,6 +35,8 @@ import java.util.stream.Stream;
  * Class Extension / Mixin for Sftp
  */
 public interface SftpUtils extends Declutter {
+    public final static int TIMEOUT = 10000;
+    
     default ChannelSftp generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
         try {
             JSch jsch = new JSch();
@@ -50,7 +52,7 @@ public interface SftpUtils extends Declutter {
 
             LogUtil.info(getClass().getName(), "Connecting to SFTP channel host [" + host + "] user [" + username + "]");
 
-            jschSession.connect();
+            jschSession.connect(TIMEOUT);
             return (ChannelSftp) jschSession.openChannel("sftp");
         } catch (JSchException e) {
             throw new KecakSftpException(e);
@@ -60,7 +62,7 @@ public interface SftpUtils extends Declutter {
     default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) throws KecakSftpException {
         if (!channelSftp.isConnected()) {
             try {
-                channelSftp.connect();
+                channelSftp.connect(TIMEOUT);
                 LogUtil.info(getClass().getName(), "storeFile : Connected to server");
             } catch (JSchException e) {
                 throw new KecakSftpException(e);
@@ -123,7 +125,7 @@ public interface SftpUtils extends Declutter {
     default InputStream loadFile(ChannelSftp channelSftp, String fullFilePath) throws KecakSftpException {
         if (!channelSftp.isConnected()) {
             try {
-                channelSftp.connect();
+                channelSftp.connect(TIMEOUT);
                 LogUtil.info(getClass().getName(), "loadFile : Connected to server");
             } catch (JSchException e) {
                 throw new KecakSftpException(e);

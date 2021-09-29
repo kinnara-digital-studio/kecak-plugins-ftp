@@ -53,7 +53,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<ChannelSft
     public void connect(ChannelSftp client) throws ExternalStorageException {
         try {
             if(!client.isConnected()) {
-                client.connect();
+                client.connect(TIMEOUT);
             }
         } catch (JSchException e) {
             throw new ExternalStorageException(e);

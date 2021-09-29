@@ -49,7 +49,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
 
             // connect to SFTP
             if (!storageClient.isConnected()) {
-                storageClient.connect();
+                storageClient.connect(TIMEOUT);
                 LogUtil.info(getClass().getName(), "Connected to server");
             }
 
@@ -87,7 +87,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     public void connect(ChannelSftp client) throws ExternalStorageException {
         try {
             if (!client.isConnected()) {
-                client.connect();
+                client.connect(TIMEOUT);
             }
         } catch (JSchException e) {
             throw new ExternalStorageException(e);
