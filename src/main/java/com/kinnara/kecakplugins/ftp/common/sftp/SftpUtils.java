@@ -136,6 +136,7 @@ public interface SftpUtils extends Declutter {
         } catch (SftpException e) {
             throw new KecakSftpException(e.getMessage() + " [" + fullFilePath + "]", e);
         } finally {
+            // TODO : fix bugs channel is closed before input stream is finished being read
             if(channelSftp.isConnected()) {
                 LogUtil.info(getClass().getName(), "loadFile : Disconnecting from server");
                 channelSftp.disconnect();

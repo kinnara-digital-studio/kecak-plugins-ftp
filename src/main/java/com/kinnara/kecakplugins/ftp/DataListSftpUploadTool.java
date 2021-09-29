@@ -49,6 +49,11 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
                 File file = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
+                if (!storageClient.isConnected()) {
+                    storageClient.connect();
+                    LogUtil.info(getClass().getName(), "storeFile : Connected to server");
+                }
+
                 storeFile(storageClient, file, remoteFolder);
                 if(isDeleteTemporaryFile()) {
                     FileManager.deleteFile(file.getParentFile());
@@ -56,7 +61,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
             } else {
                 throw new KecakSftpException("File format is not supported");
             }
-        } catch (KecakSftpException e) {
+        } catch (KecakSftpException | JSchException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
     }

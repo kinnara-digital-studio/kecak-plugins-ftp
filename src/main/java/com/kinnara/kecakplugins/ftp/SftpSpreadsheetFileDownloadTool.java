@@ -2,6 +2,7 @@ package com.kinnara.kecakplugins.ftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
@@ -16,6 +17,7 @@ import org.joget.plugin.base.Plugin;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +38,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
         WorkflowAssignment workflowAssignment = (WorkflowAssignment) properties.get("workflowAssignment");
         String statusWorkflowVariable = getStatusWorkflowVariable();
 
+        final String fullFilePath = getFileName(properties);
         try {
             AppDefinition appDefinition = (AppDefinition) properties.get("appDef");
             if(appDefinition == null && (appDefinition = AppUtil.getCurrentAppDefinition()) == null) {
@@ -43,16 +46,31 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
             }
 
             Form form = getForm(appDefinition, getFormDefId(), new FormData());
-            processCsvFile(this, loadFile(storageClient, getFileName(properties)), form, getSkipLines(), true, getCellMapping(properties), getDefaultValues(properties));
+
+            // connect to SFTP
+            if (!storageClient.isConnected()) {
+                storageClient.connect();
+                LogUtil.info(getClass().getName(), "Connected to server");
+            }
+
+            LogUtil.info(getClass().getName(), "Loading file from sftp server [" + fullFilePath + "]");
+            InputStream is = storageClient.get(fullFilePath);
+            processCsvFile(this, is, form, getSkipLines(), true, getCellMapping(properties), getDefaultValues(properties));
 
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusSucceed());
             }
-        } catch (KecakSftpException e) {
+        } catch (KecakSftpException | JSchException | SftpException e) {
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusFailed());
             }
             LogUtil.error(getClassName(), e, e.getMessage());
+        } finally {
+            // close to SFTP
+            if(storageClient.isConnected()) {
+                LogUtil.info(getClass().getName(), "Disconnecting from server");
+                storageClient.disconnect();
+            }
         }
     }
 
