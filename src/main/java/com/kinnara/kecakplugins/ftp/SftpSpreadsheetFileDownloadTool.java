@@ -1,11 +1,9 @@
 package com.kinnara.kecakplugins.ftp;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
 import org.joget.apps.app.model.AppDefinition;
@@ -17,6 +15,7 @@ import org.joget.plugin.base.Plugin;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
@@ -30,16 +29,16 @@ import java.util.stream.Stream;
  * Download CSV files from SFTP server to local
  *
  */
-public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool<ChannelSftp> implements SftpUtils, SftpTool {
+public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool<SftpClient> implements SftpUtils, SftpTool {
     @Override
-    protected void execute(ChannelSftp storageClient) {
+    protected void execute(SftpClient storageClient) {
         Map<String, Object> properties = getProperties();
         WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
         WorkflowAssignment workflowAssignment = (WorkflowAssignment) properties.get("workflowAssignment");
         String statusWorkflowVariable = getStatusWorkflowVariable();
 
-        final String fullFilePath = getFileName(properties);
-        try {
+        try(InputStream inputStream = loadFile(storageClient.getChannelSftp(), getFileName(properties))) {
+
             AppDefinition appDefinition = (AppDefinition) properties.get("appDef");
             if(appDefinition == null && (appDefinition = AppUtil.getCurrentAppDefinition()) == null) {
                 throw new KecakSftpException("Property [appDef] is null");
@@ -47,57 +46,25 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
 
             Form form = getForm(appDefinition, getFormDefId(), new FormData());
 
-            // connect to SFTP
-            if (!storageClient.isConnected()) {
-                storageClient.connect(TIMEOUT);
-                LogUtil.info(getClass().getName(), "Connected to server");
-            }
-
-            LogUtil.info(getClass().getName(), "Loading file from sftp server [" + fullFilePath + "]");
-            InputStream is = storageClient.get(fullFilePath);
-            processCsvFile(this, is, form, getSkipLines(), true, getCellMapping(properties), getDefaultValues(properties));
+            processCsvFile(this, inputStream, form, getSkipLines(), true, getCellMapping(properties), getDefaultValues(properties));
 
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusSucceed());
             }
-        } catch (KecakSftpException | JSchException | SftpException e) {
+        } catch (KecakSftpException | IOException e) {
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusFailed());
             }
             LogUtil.error(getClassName(), e, e.getMessage());
-        } finally {
-            // close to SFTP
-            if(storageClient.isConnected()) {
-                LogUtil.info(getClass().getName(), "Disconnecting from server");
-                storageClient.disconnect();
-            }
         }
     }
 
     @Override
-    public ChannelSftp generateClient(Plugin plugin) throws ExternalStorageException {
+    public SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
             return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
         } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
-        }
-    }
-
-    @Override
-    public void connect(ChannelSftp client) throws ExternalStorageException {
-        try {
-            if (!client.isConnected()) {
-                client.connect(TIMEOUT);
-            }
-        } catch (JSchException e) {
-            throw new ExternalStorageException(e);
-        }
-    }
-
-    @Override
-    public void disconnect(ChannelSftp client) {
-        if (client.isConnected()) {
-            client.disconnect();
         }
     }
 

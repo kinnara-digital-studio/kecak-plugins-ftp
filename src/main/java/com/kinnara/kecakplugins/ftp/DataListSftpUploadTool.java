@@ -1,10 +1,10 @@
 package com.kinnara.kecakplugins.ftp;
 
-import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
 import org.joget.apps.app.service.AppUtil;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 /**
  * @author aristo
  */
-public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSftp> implements SftpUtils, SftpTool {
+public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient> implements SftpUtils, SftpTool {
     public final static String CSV_DELIMITER = ";";
 
     @Override
@@ -41,7 +41,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
     }
 
     @Override
-    public void execute(ChannelSftp storageClient) {
+    public void execute(SftpClient storageClient) {
         try {
             if(".csv".equalsIgnoreCase(getFileFormat())) {
                 String remoteFolder = getRemoteFolder();
@@ -49,19 +49,16 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
                 File file = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
-                if (!storageClient.isConnected()) {
-                    storageClient.connect(TIMEOUT);
-                    LogUtil.info(getClass().getName(), "storeFile : Connected to server");
-                }
 
-                storeFile(storageClient, file, remoteFolder);
+                storeFile(storageClient.getChannelSftp(), file, remoteFolder);
+
                 if(isDeleteTemporaryFile()) {
                     FileManager.deleteFile(file.getParentFile());
                 }
             } else {
                 throw new KecakSftpException("File format is not supported");
             }
-        } catch (KecakSftpException | JSchException e) {
+        } catch (KecakSftpException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
     }
@@ -82,29 +79,11 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<ChannelSft
     }
 
     @Override
-    public ChannelSftp generateClient(Plugin plugin) throws ExternalStorageException {
+    protected SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
-            return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
-        } catch (KecakSftpException e) {
-            throw new ExternalStorageException(e);
-        }
-    }
-
-    @Override
-    public void connect(ChannelSftp client) throws ExternalStorageException {
-        try {
-            if(!client.isConnected()) {
-                client.connect(TIMEOUT);
-            }
+            return new SftpClient(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
         } catch (JSchException e) {
             throw new ExternalStorageException(e);
-        }
-    }
-
-    @Override
-    public void disconnect(ChannelSftp client) throws ExternalStorageException {
-        if(client.isConnected()) {
-            client.disconnect();
         }
     }
 

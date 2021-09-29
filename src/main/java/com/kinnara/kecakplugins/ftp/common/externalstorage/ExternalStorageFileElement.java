@@ -9,6 +9,7 @@ import org.joget.apps.form.service.FormService;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.commons.util.FileManager;
 import org.joget.commons.util.LogUtil;
+import org.joget.plugin.base.Plugin;
 import org.joget.plugin.base.PluginWebSupport;
 
 import javax.servlet.ServletException;
@@ -23,7 +24,9 @@ import java.util.*;
  *
  * @param <T> External storage client
  */
-public abstract class ExternalStorageFileElement<T> extends Element implements IExternalStorage<T>, FormBuilderPaletteElement, FileDownloadSecurity,PluginWebSupport {
+public abstract class ExternalStorageFileElement<T extends AutoCloseable> extends Element implements FormBuilderPaletteElement, FileDownloadSecurity,PluginWebSupport {
+    abstract protected T generateClient(Plugin plugin) throws ExternalStorageException;
+
     @Override
     public final String getFormBuilderTemplate() {
         return "<label class='label'>" + getLabel() + "</label><input type='file' />";
@@ -71,8 +74,7 @@ public abstract class ExternalStorageFileElement<T> extends Element implements I
 
     @Override
     public final FormRowSet formatData(FormData formData) {
-        try {
-            T client = generateClient(this);
+        try(T client = generateClient(this)) {
 
             // get value
             String id = getPropertyString(FormUtil.PROPERTY_ID);
@@ -178,13 +180,8 @@ public abstract class ExternalStorageFileElement<T> extends Element implements I
                 }
             }
 
-
             Element element = FormUtil.findElement(elementId, form, formData);
-            T client = null;
-            try {
-                client = generateClient(element);
-                connect(client);
-
+            try(T client = generateClient(element)) {
                 // send file to response
                 byte[] bbuf = new byte[65536];
                 try(InputStream fileInputStream = loadFile(client, element, formData, fileName);
@@ -211,16 +208,8 @@ public abstract class ExternalStorageFileElement<T> extends Element implements I
                     stream.flush();
                 }
 
-            } catch (ExternalStorageException e) {
+            } catch (Exception e) {
                 throw new RestApiException(HttpServletResponse.SC_BAD_REQUEST, e);
-            } finally {
-                try {
-                    if(client != null) {
-                        disconnect(client);
-                    }
-                } catch (ExternalStorageException e) {
-                    LogUtil.error(getClassName(), e, e.getMessage());
-                }
             }
         } catch (RestApiException e) {
             LogUtil.error(getClassName(), e, e.getMessage());

@@ -1,16 +1,14 @@
 package com.kinnara.kecakplugins.ftp;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSchException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUtil;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
-import org.joget.apps.form.lib.FileUpload;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.Form;
 import org.joget.apps.form.model.FormData;
@@ -27,9 +25,9 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-public class SftpFileDownloadTool extends ExternalStorageDownloadTool<ChannelSftp> implements SftpUtils {
+public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient> implements SftpUtils {
     @Override
-    protected void execute(ChannelSftp client) throws ExternalStorageException {
+    protected void execute(SftpClient client) throws ExternalStorageException {
         Map<String, Object> properties = getProperties();
         WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
         Optional<WorkflowAssignment> workflowAssignment = Optional.ofNullable((WorkflowAssignment) properties.get("workflowAssignment"));
@@ -62,30 +60,12 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<ChannelSft
     }
 
     @Override
-    public ChannelSftp generateClient(Plugin plugin) throws ExternalStorageException {
-        ExternalStorageFileElement<ChannelSftp> element = (ExternalStorageFileElement<ChannelSftp>) plugin;
+    public SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
+        ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
         try {
             return generateSftpChannel(getHost(element), getUsername(element), getPassword(element), getKnownHostsFile(element), true);
         } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
-        }
-    }
-
-    @Override
-    public void connect(ChannelSftp client) throws ExternalStorageException {
-        try {
-            if(!client.isConnected()) {
-                client.connect(TIMEOUT);
-            }
-        } catch (JSchException e) {
-            throw new ExternalStorageException(e);
-        }
-    }
-
-    @Override
-    public void disconnect(ChannelSftp client) throws ExternalStorageException {
-        if(client.isConnected()) {
-            client.disconnect();
         }
     }
 

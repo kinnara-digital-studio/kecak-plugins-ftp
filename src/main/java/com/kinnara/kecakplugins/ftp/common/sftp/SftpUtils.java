@@ -37,38 +37,15 @@ import java.util.stream.Stream;
 public interface SftpUtils extends Declutter {
     public final static int TIMEOUT = 10000;
     
-    default ChannelSftp generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
+    default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
         try {
-            JSch jsch = new JSch();
-            jsch.setKnownHosts(pathKnownHosts);
-            Session jschSession = jsch.getSession(username, host);
-            jschSession.setPassword(password);
-
-            if (!isStrictHostKeyChecking) {
-                Properties config = new Properties();
-                config.put("StrictHostKeyChecking", "no");
-                jschSession.setConfig(config);
-            }
-
-            LogUtil.info(getClass().getName(), "Connecting to SFTP channel host [" + host + "] user [" + username + "]");
-
-            jschSession.connect(TIMEOUT);
-            return (ChannelSftp) jschSession.openChannel("sftp");
+            return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
         } catch (JSchException e) {
             throw new KecakSftpException(e);
         }
     }
 
     default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) throws KecakSftpException {
-        if (!channelSftp.isConnected()) {
-            try {
-                channelSftp.connect(TIMEOUT);
-                LogUtil.info(getClass().getName(), "storeFile : Connected to server");
-            } catch (JSchException e) {
-                throw new KecakSftpException(e);
-            }
-        }
-
         // store file in bucket
         try (InputStream fileInputStream = new FileInputStream(file)) {
             // create folder
@@ -92,11 +69,6 @@ public interface SftpUtils extends Declutter {
             channelSftp.put(fileInputStream, targetFullPath);
         } catch (IOException | SftpException e) {
             throw new KecakSftpException(e);
-        } finally {
-            if(channelSftp.isConnected()) {
-                LogUtil.info(getClass().getName(), "storeFile : Disconnecting from server");
-                channelSftp.disconnect();
-            }
         }
     }
 
@@ -123,26 +95,11 @@ public interface SftpUtils extends Declutter {
      * @throws SftpException
      */
     default InputStream loadFile(ChannelSftp channelSftp, String fullFilePath) throws KecakSftpException {
-        if (!channelSftp.isConnected()) {
-            try {
-                channelSftp.connect(TIMEOUT);
-                LogUtil.info(getClass().getName(), "loadFile : Connected to server");
-            } catch (JSchException e) {
-                throw new KecakSftpException(e);
-            }
-        }
-
         try {
             LogUtil.info(getClass().getName(), "Loading file from sftp server [" + fullFilePath + "]");
             return channelSftp.get(fullFilePath);
         } catch (SftpException e) {
             throw new KecakSftpException(e.getMessage() + " [" + fullFilePath + "]", e);
-        } finally {
-            // TODO : fix bugs channel is closed before input stream is finished being read
-            if(channelSftp.isConnected()) {
-                LogUtil.info(getClass().getName(), "loadFile : Disconnecting from server");
-                channelSftp.disconnect();
-            }
         }
     }
 

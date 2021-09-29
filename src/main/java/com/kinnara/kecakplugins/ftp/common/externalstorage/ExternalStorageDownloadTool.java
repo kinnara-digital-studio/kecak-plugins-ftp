@@ -3,6 +3,7 @@ package com.kinnara.kecakplugins.ftp.common.externalstorage;
 import org.joget.apps.form.lib.FileUpload;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
+import org.joget.plugin.base.Plugin;
 
 import java.util.Map;
 
@@ -11,17 +12,16 @@ import java.util.Map;
  *
  * @param <T>
  */
-public abstract class ExternalStorageDownloadTool<T> extends DefaultApplicationPlugin implements IExternalStorage<T> {
+public abstract class ExternalStorageDownloadTool<T extends AutoCloseable> extends DefaultApplicationPlugin  {
     private Map<String, Object> properties;
 
     @Override
     public final Object execute(Map properties) {
         this.properties = properties;
 
-        try {
-            T storageClient = generateClient(this);
+        try(T storageClient = generateClient(this)) {
             execute(storageClient);
-        } catch (ExternalStorageException e) {
+        } catch (Exception e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
 
@@ -39,4 +39,6 @@ public abstract class ExternalStorageDownloadTool<T> extends DefaultApplicationP
      * @throws ExternalStorageException
      */
     protected abstract void execute(T storageClient) throws ExternalStorageException;
+
+    protected abstract T generateClient(Plugin plugin) throws ExternalStorageException;
 }

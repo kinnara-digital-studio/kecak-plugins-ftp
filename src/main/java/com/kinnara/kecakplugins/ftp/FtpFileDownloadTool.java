@@ -3,9 +3,8 @@ package com.kinnara.kecakplugins.ftp;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUtil;
+import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
 import com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPReply;
 import org.joget.apps.app.dao.FormDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.FormDefinition;
@@ -30,10 +29,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FTPClient> {
+public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FtpClient> {
 
     @Override
-    protected void execute(FTPClient client) throws ExternalStorageException {
+    protected void execute(FtpClient client) throws ExternalStorageException {
         final File tempOutputFile = getTemporaryDownloadFile();
         try (OutputStream fos = new FileOutputStream(tempOutputFile);
              OutputStream bos = new BufferedOutputStream(fos)) {
@@ -58,29 +57,9 @@ public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FTPClient> 
     }
 
     @Override
-    public FTPClient generateClient(Plugin plugin) throws ExternalStorageException {
-        return new FTPClient();
-    }
-
-    @Override
-    public void connect(FTPClient client) throws ExternalStorageException {
+    protected FtpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
-            client.connect(getHostname(), 21);
-            int replyCode = client.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                client.disconnect();
-                throw new IOException("Exception in connecting to FTP Server");
-            }
-            client.login(getUsername(), getPassword());
-        } catch (IOException e) {
-            throw new ExternalStorageException(e);
-        }
-    }
-
-    @Override
-    public void disconnect(FTPClient client) throws ExternalStorageException {
-        try {
-            client.disconnect();
+            return new FtpClient(getHostname(), getUsername(), getPassword());
         } catch (IOException e) {
             throw new ExternalStorageException(e);
         }
@@ -113,7 +92,7 @@ public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FTPClient> 
 
     @Override
     public String getPropertyOptions() {
-        return null;
+        return "";
     }
 
     protected File getTemporaryDownloadFile() throws ExternalStorageException {
