@@ -16,6 +16,7 @@ public class Activator implements BundleActivator {
 
         // SFTP
         registrationList.add(context.registerService(SftpFileUploadElement.class.getName(), new SftpFileUploadElement(), null));
+        registrationList.add(context.registerService(DataListFtpUploadTool.class.getName(), new DataListFtpUploadTool(), null));
         registrationList.add(context.registerService(DataListSftpUploadTool.class.getName(), new DataListSftpUploadTool(), null));
         registrationList.add(context.registerService(SftpSpreadsheetFileDownloadTool.class.getName(), new SftpSpreadsheetFileDownloadTool(), null));
 

@@ -2,16 +2,17 @@ package com.kinnara.kecakplugins.ftp;
 
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
-import com.kinnara.kecakplugins.ftp.common.sftp.SftpTool;
-import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
+import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
+import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Form;
 import org.joget.apps.form.model.FormData;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.Plugin;
+import org.joget.plugin.base.PluginManager;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 
@@ -20,6 +21,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,7 +31,7 @@ import java.util.stream.Stream;
  * Download CSV files from SFTP server to local
  *
  */
-public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool<SftpClient> implements SftpUtils, SftpTool {
+public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool<SftpClient> implements Utils, CsvTool {
     @Override
     protected void execute(SftpClient storageClient) {
         Map<String, Object> properties = getProperties();
@@ -41,7 +43,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
 
             AppDefinition appDefinition = (AppDefinition) properties.get("appDef");
             if(appDefinition == null && (appDefinition = AppUtil.getCurrentAppDefinition()) == null) {
-                throw new KecakSftpException("Property [appDef] is null");
+                throw new KecakFtpException("Property [appDef] is null");
             }
 
             Form form = getForm(appDefinition, getFormDefId(), new FormData());
@@ -51,7 +53,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusSucceed());
             }
-        } catch (KecakSftpException | IOException e) {
+        } catch (KecakFtpException | IOException e) {
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusFailed());
             }
@@ -63,19 +65,22 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     public SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
             return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
-        } catch (KecakSftpException e) {
+        } catch (KecakFtpException e) {
             throw new ExternalStorageException(e);
         }
     }
 
     @Override
     public String getName() {
-        return getLabel() + getVersion();
+        return getLabel();
     }
 
     @Override
     public String getVersion() {
-        return getClass().getPackage().getImplementationVersion();
+        PluginManager pluginManager = (PluginManager) AppUtil.getApplicationContext().getBean("pluginManager");
+        ResourceBundle resourceBundle = pluginManager.getPluginMessageBundle(getClassName(), "/messages/BuildNumber");
+        String buildNumber = resourceBundle.getString("buildNumber");
+        return buildNumber;
     }
 
     @Override

@@ -4,7 +4,9 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 
 public class FtpClient implements AutoCloseable {
     private final FTPClient ftpClient;
@@ -37,5 +39,11 @@ public class FtpClient implements AutoCloseable {
 
     public boolean retrieveFile(String remote, OutputStream local) throws IOException {
         return ftpClient.retrieveFile(remote, local);
+    }
+
+    public boolean sendFile(InputStream local, String remote) throws IOException {
+        final String folder = remote.replaceAll("[^\\/]+$", "");
+        ftpClient.mkd(folder);
+        return ftpClient.storeFile(remote, local);
     }
 }

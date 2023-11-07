@@ -8,7 +8,7 @@ import org.joget.commons.util.LogUtil;
 
 import java.util.Properties;
 
-public class SftpClient implements AutoCloseable, SftpUtils {
+public class SftpClient implements AutoCloseable, Utils {
     private final String host;
     private final Session jschSession;
     private final ChannelSftp channelSftp;

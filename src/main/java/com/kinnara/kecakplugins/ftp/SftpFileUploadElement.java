@@ -3,24 +3,26 @@ package com.kinnara.kecakplugins.ftp;
 import com.jcraft.jsch.JSchException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
-import com.kinnara.kecakplugins.ftp.common.sftp.SftpUtils;
+import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
 import org.joget.plugin.base.Plugin;
+import org.joget.plugin.base.PluginManager;
 import org.joget.plugin.property.model.PropertyEditable;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 /**
  * @author aristo
  */
-public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient> implements SftpUtils {
+public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient> implements Utils {
     @Override
     protected SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
@@ -35,7 +37,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
     protected InputStream loadFile(SftpClient client, Element element, FormData formData, String fileName) throws ExternalStorageException {
         try {
             return loadFile(client.getChannelSftp(), getRemoteFolder(element), fileName, element, formData);
-        } catch (KecakSftpException e) {
+        } catch (KecakFtpException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -44,7 +46,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
     protected void storeFile(SftpClient client, File file, Element element, FormData formData) throws ExternalStorageException {
         try {
             storeFile(client.getChannelSftp(), file, getRemoteFolder(element), element, formData);
-        } catch (KecakSftpException e) {
+        } catch (KecakFtpException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -93,12 +95,15 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
 
     @Override
     public String getName() {
-        return getLabel() + getVersion();
+        return getLabel();
     }
 
     @Override
     public String getVersion() {
-        return getClass().getPackage().getImplementationVersion();
+        PluginManager pluginManager = (PluginManager) AppUtil.getApplicationContext().getBean("pluginManager");
+        ResourceBundle resourceBundle = pluginManager.getPluginMessageBundle(getClassName(), "/messages/BuildNumber");
+        String buildNumber = resourceBundle.getString("buildNumber");
+        return buildNumber;
     }
 
     @Override

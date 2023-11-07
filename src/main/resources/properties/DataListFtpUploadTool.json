@@ -1,0 +1,147 @@
+[
+  {
+    "title": "@@ftp.dataListFTPUploadTool@@",
+    "properties": [
+      {
+        "label": "@@ftp.dataSource@@",
+        "type": "header"
+      },
+      {
+        "name" : "dataListId",
+        "label" : "@@ftp.dataListId@@",
+        "type" : "selectbox",
+        "required" : "true",
+        "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options"
+      },
+      {
+        "name" : "dataListFilter",
+        "label": "@@ftp.dataListFilter@@",
+        "type": "grid",
+        "columns" : [
+          {
+            "key": "name",
+            "label" : "@@ftp.name@@",
+            "required": "true"
+          },
+          {
+            "key" : "value",
+            "label" : "@@ftp.value@@"
+          }
+        ]
+      },
+      {
+        "label": "@@ftp.resultFile@@",
+        "type": "header"
+      },
+      {
+        "name": "fileName",
+        "label": "@@ftp.fileName@@",
+        "type": "textfield",
+        "required": "true"
+      },
+      {
+        "name": "fileFormat",
+        "label": "@@ftp.fileFormat@@",
+        "type": "radio",
+        "value": ".csv",
+        "required": "true",
+        "options": [
+          {
+            "value": ".csv",
+            "label": "@@ftp.fileFormat.csv@@"
+          }
+        ]
+      },
+      {
+        "name": "columnDelimiter",
+        "label":"@@ftp.columnDelimiter@@",
+        "type": "textfield",
+        "value": ";",
+        "required": "true"
+      },
+      {
+        "name": "headerValues",
+        "label": "@@ftp.headerValues@@",
+        "type": "grid",
+        "columns": [
+          {
+            "key": "value",
+            "label": "Value"
+          }
+        ]
+      },
+      {
+        "name": "deleteTemporaryFile",
+        "label": "@@ftp.deleteTemporaryFile@@",
+        "type": "checkbox",
+        "value": "true",
+        "options": [
+          {
+            "value": "true",
+            "label": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "SFTP Connection",
+    "properties": [
+      {
+        "name": "host",
+        "label": "@@ftp.host@@",
+        "type": "textfield"
+      },
+      {
+        "name": "username",
+        "label": "@@ftp.username@@",
+        "type": "textfield"
+      },
+      {
+        "name": "password",
+        "label": "@@ftp.password@@",
+        "type": "password"
+      },
+      {
+        "name": "remoteFolder",
+        "label": "Remote Folder",
+        "type": "textfield"
+      },
+      {
+        "name": "knownHostsFile",
+        "label": "Known Hosts File",
+        "type": "textfield",
+        "value": "/root/.ssh/known_hosts"
+      }
+    ]
+  },
+  {
+    "title": "Security",
+    "properties": [
+      {
+        "name": "strictHostKeyChecking",
+        "label": "Strict Hostkey Checking",
+        "value": "true",
+        "type": "checkbox",
+        "options": [
+          {
+            "value": "true",
+            "label": ""
+          }
+        ]
+      },
+      {
+        "name": "debug",
+        "label": "Enable debugging",
+        "value": "true",
+        "type": "checkbox",
+        "options": [
+          {
+            "value": "true",
+            "label": ""
+          }
+        ]
+      }
+    ]
+  }
+]

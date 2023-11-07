@@ -25,8 +25,10 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.springframework.context.ApplicationContext;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.UUID;
 
 public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FtpClient> {
@@ -34,7 +36,7 @@ public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FtpClient> 
     @Override
     protected void execute(FtpClient client) throws ExternalStorageException {
         final File tempOutputFile = getTemporaryDownloadFile();
-        try (OutputStream fos = new FileOutputStream(tempOutputFile);
+        try (OutputStream fos = Files.newOutputStream(tempOutputFile.toPath());
              OutputStream bos = new BufferedOutputStream(fos)) {
 
             String remoteFile = getRemoteFile();
@@ -67,12 +69,15 @@ public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FtpClient> 
 
     @Override
     public String getName() {
-        return getLabel() + getVersion();
+        return getLabel();
     }
 
     @Override
     public String getVersion() {
-        return getClass().getPackage().getImplementationVersion();
+        PluginManager pluginManager = (PluginManager) AppUtil.getApplicationContext().getBean("pluginManager");
+        ResourceBundle resourceBundle = pluginManager.getPluginMessageBundle(getClassName(), "/messages/BuildNumber");
+        String buildNumber = resourceBundle.getString("buildNumber");
+        return buildNumber;
     }
 
     @Override

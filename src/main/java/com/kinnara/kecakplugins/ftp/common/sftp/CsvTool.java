@@ -1,5 +1,5 @@
 package com.kinnara.kecakplugins.ftp.common.sftp;
 
-public interface SftpTool {
+public interface CsvTool {
     String getCsvDelimiter();
 }
