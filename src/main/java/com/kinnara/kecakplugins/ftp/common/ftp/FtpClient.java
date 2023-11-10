@@ -43,18 +43,12 @@ public class FtpClient implements AutoCloseable {
 
         LogUtil.info(getClass().getName(), "Logged in as [" + username + "] with reply code [" + ftpClient.getReplyCode() + "] status [" + ftpClient.getStatus() + "]");
 
-//        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-//        ftpClient.setControlEncoding("UTF-8");
-
         if (ftpClient instanceof FTPSClient) {
             ftpClient.sendCommand("OPTS", "UTF8 ON");
-            LogUtil.info(getClass().getName(), "sendFile : sendCommand reply [" + ftpClient.getReplyString() + "]");
 
             ((FTPSClient) ftpClient).execPBSZ(0);
-            LogUtil.info(getClass().getName(), "sendFile : execPBSZ reply [" + ftpClient.getReplyString() + "]");
 
             ((FTPSClient) ftpClient).execPROT("P");
-            LogUtil.info(getClass().getName(), "sendFile : execPROT reply [" + ftpClient.getReplyString() + "]");
         }
     }
 
@@ -102,14 +96,6 @@ public class FtpClient implements AutoCloseable {
             throw new KecakFtpException("completePendingCommand reply [" + ftpClient.getReplyString() + "]");
         }
         LogUtil.warn(getClass().getName(), "sendFile : completePendingCommand status [" + ftpClient.getStatus() + "]");
-
-//        LogUtil.info(getClass().getName(), "sendFile : storeFile remote [" + remote + "]");
-//        if (!ftpClient.storeFile(remote, local)) {
-//            LogUtil.info(getClass().getName(), "storeFile status [" + ftpClient.getStatus() + "]");
-//            Arrays.stream(ftpClient.getReplyStrings()).forEach(s -> LogUtil.warn(getClass().getName(), "storeFile reply [" + s + "]"));
-//            throw new KecakFtpException("storeFile reply [" + ftpClient.getReplyString() + "]");
-//        }
-//        LogUtil.info(getClass().getName(), "sendFile : storeFile reply [" + ftpClient.getReplyString() + "]");
     }
 
     public int mkdir(String folder) throws IOException {
