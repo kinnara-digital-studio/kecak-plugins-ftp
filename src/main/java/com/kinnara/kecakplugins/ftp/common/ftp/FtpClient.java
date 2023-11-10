@@ -95,7 +95,6 @@ public class FtpClient implements AutoCloseable {
         if (!ftpClient.completePendingCommand()) {
             throw new KecakFtpException("completePendingCommand reply [" + ftpClient.getReplyString() + "]");
         }
-        LogUtil.warn(getClass().getName(), "sendFile : completePendingCommand status [" + ftpClient.getStatus() + "]");
     }
 
     public int mkdir(String folder) throws IOException {
