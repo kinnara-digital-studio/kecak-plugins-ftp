@@ -121,7 +121,7 @@ public class FtpClient implements AutoCloseable {
                 int len;
                 while ((len = local.read(buffer)) > 0) {
                     LogUtil.info(getClass().getName(), "sendFile : storeFileStream read len[" + len + "]");
-                    outputStream.write(buffer);
+                    outputStream.write(buffer, 0, len);
                 }
             } else {
                 LogUtil.warn(getClass().getName(), "sendFile : storeFileStream reply [" + ftpClient.getReplyCode() + "] [" + ftpClient.getReplyString() + "]");
