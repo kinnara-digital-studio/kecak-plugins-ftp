@@ -13,17 +13,13 @@ import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 
 public class FtpClient implements AutoCloseable {
-    private final String host;
-    private final int port;
     private final FTPClient ftpClient;
 
-    public FtpClient(String hostname, String username, String password) throws IOException, GeneralSecurityException {
-        this(hostname, 21, username, password, false);
+    public FtpClient(String host, String username, String password) throws IOException, GeneralSecurityException {
+        this(host, 21, username, password, false);
     }
 
-    public FtpClient(String hostname, int port, String username, String password, boolean isSecure) throws IOException, GeneralSecurityException {
-        this.host = hostname;
-        this.port = port;
+    public FtpClient(String host, int port, String username, String password, boolean isSecure) throws IOException, GeneralSecurityException {
 
         if (isSecure) {
             final FTPSClient secureClient = new FTPSClient();
@@ -32,7 +28,7 @@ public class FtpClient implements AutoCloseable {
         } else {
             this.ftpClient = new FTPClient();
         }
-        ftpClient.connect(hostname, port);
+        ftpClient.connect(host, port);
         int replyCode = ftpClient.getReplyCode();
         if (!FTPReply.isPositiveCompletion(replyCode)) {
             ftpClient.disconnect();
