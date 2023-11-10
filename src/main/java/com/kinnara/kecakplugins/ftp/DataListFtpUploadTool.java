@@ -6,7 +6,6 @@ import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
-import org.apache.commons.net.ftp.FTPFile;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.commons.util.FileManager;
@@ -36,7 +35,8 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
                 DataList dataList = getDataList(getPropertyString("dataListId"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
-                File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
+                String filenameWithExtension = getFileName().replaceAll("(?<!\\.\\w{3})$", getFileFormat());
+                File localFile = getDataListRow(this, dataList, filters, filenameWithExtension, 0, headerValues);
 
                 if(isDebug) {
                     LogUtil.info(getClass().getName(), "Uploading temp file [" + localFile + "] to remote folder ["+ remoteFolder + "]");
@@ -104,20 +104,19 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     }
 
     protected String getHost() {
-        return String.valueOf(getProperties().get("host"));
+        return getPropertyString("host");
     }
 
     protected int getPort() {
         return Integer.parseInt(ifEmptyThen(getPropertyString("port"), String.valueOf(DEFAULT_FTP_PORT)));
     }
     protected String getPassword() {
-        return String.valueOf(getProperties().get("password"));
+        return getPropertyString("password");
     }
 
     protected String getUsername() {
-        return String.valueOf(getProperties().get("username"));
+        return getPropertyString("username");
     }
-
 
     /**
      * File format
@@ -125,11 +124,11 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
      * @return
      */
     protected String getFileFormat() {
-        return String.valueOf(getProperties().get("fileFormat"));
+        return getPropertyString("fileFormat");
     }
 
     protected String getFileName() {
-        return String.valueOf(getProperties().get("fileName"));
+        return getPropertyString("fileName");
     }
 
     protected Map<String, List<String>> getDataListFilter() {
@@ -145,7 +144,7 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     }
 
     protected String getRemoteFolder() {
-        return String.valueOf(getProperties().get("remoteFolder"));
+        return getPropertyString("remoteFolder");
     }
 
     protected boolean isDeleteTemporaryFile() {
