@@ -64,7 +64,8 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
         try {
             final String host = getHost();
             int port = getPort();
-            return new FtpClient(host, port, getUsername(), getPassword(), true);
+            boolean ignoreCertificateError = ignoreSslCertificateError();
+            return new FtpClient(host, port, getUsername(), getPassword(), true, ignoreCertificateError);
         } catch (IOException | GeneralSecurityException e) {
             throw new ExternalStorageException(e);
         }
@@ -160,5 +161,9 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     @Override
     public String getCsvDelimiter() {
         return getPropertyString("columnDelimiter");
+    }
+
+    protected boolean ignoreSslCertificateError() {
+        return "true".equalsIgnoreCase(getPropertyString("strictHostKeyChecking");
     }
 }

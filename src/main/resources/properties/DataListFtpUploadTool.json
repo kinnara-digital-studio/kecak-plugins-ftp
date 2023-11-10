@@ -113,12 +113,6 @@
         "name": "remoteFolder",
         "label": "Remote Folder",
         "type": "textfield"
-      },
-      {
-        "name": "knownHostsFile",
-        "label": "Known Hosts File",
-        "type": "textfield",
-        "value": "/root/.ssh/known_hosts"
       }
     ]
   },

@@ -16,14 +16,19 @@ public class FtpClient implements AutoCloseable {
     private final FTPClient ftpClient;
 
     public FtpClient(String host, String username, String password) throws IOException, GeneralSecurityException {
-        this(host, 21, username, password, false);
+        this(host, 21, username, password, false, true);
     }
 
-    public FtpClient(String host, int port, String username, String password, boolean isSecure) throws IOException, GeneralSecurityException {
+    public FtpClient(String host, int port, String username, String password, boolean isSecure, boolean ignoreSslCertificateError) throws IOException, GeneralSecurityException {
 
         if (isSecure) {
             final FTPSClient secureClient = new FTPSClient();
-            secureClient.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());
+
+            if(ignoreSslCertificateError) {
+                secureClient.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());
+            } else {
+                secureClient.setTrustManager(TrustManagerUtils.getValidateServerCertificateTrustManager());
+            }
             this.ftpClient = secureClient;
         } else {
             this.ftpClient = new FTPClient();
