@@ -54,10 +54,10 @@ public class FtpClient implements AutoCloseable {
             ftpClient.sendCommand("OPTS", "UTF8 ON");
             LogUtil.info(getClass().getName(), "sendFile : sendCommand reply [" + ftpClient.getReplyString() + "]");
 
-            ((FTPSClient)ftpClient).execPBSZ(0);;
+            ((FTPSClient) ftpClient).execPBSZ(0);
             LogUtil.info(getClass().getName(), "sendFile : execPBSZ reply [" + ftpClient.getReplyString() + "]");
 
-            ((FTPSClient)ftpClient).execPROT("P");
+            ((FTPSClient) ftpClient).execPROT("P");
             LogUtil.info(getClass().getName(), "sendFile : execPROT reply [" + ftpClient.getReplyString() + "]");
         }
     }
@@ -79,73 +79,31 @@ public class FtpClient implements AutoCloseable {
 
     public void sendFile(InputStream local, String remote) throws IOException, KecakFtpException {
         final String workingDirectory = remote.replaceAll("[^/]+$", "");
-        final String file = remote.replaceAll("^.+(?=[/])/", "");
 
-        LogUtil.info(getClass().getName(), "sendFile : changeWorkingDirectory [" + workingDirectory + "]");
         if (!ftpClient.changeWorkingDirectory(workingDirectory)) {
-            LogUtil.info(getClass().getName(), "changeWorkingDirectory status [" + ftpClient.getStatus() + "]");
             throw new KecakFtpException("changeWorkingDirectory reply [" + ftpClient.getReplyString() + "]");
         }
-        LogUtil.info(getClass().getName(), "sendFile : changeWorkingDirectory reply [" + ftpClient.getReplyString() + "]");
 
-        ftpClient.sendCommand("CWD", workingDirectory);
-        LogUtil.info(getClass().getName(), "sendFile : sendCommand reply [" + ftpClient.getReplyString() + "]");
-
-        LogUtil.info(getClass().getName(), "sendFile : setFileType [" + FTP.ASCII_FILE_TYPE + "]");
         if (!ftpClient.setFileType(FTP.ASCII_FILE_TYPE)) {
-            LogUtil.info(getClass().getName(), "setFileType status [" + ftpClient.getStatus() + "]");
             throw new KecakFtpException("setFileType reply [" + ftpClient.getReplyString() + "]");
         }
-        LogUtil.info(getClass().getName(), "sendFile : setFileType reply [" + ftpClient.getReplyString() + "]");
 
-
-//        LogUtil.info(getClass().getName(), "sendFile : enterRemotePassiveMode");
-//        if (!ftpClient.enterRemotePassiveMode()) {
-//            LogUtil.info(getClass().getName(), "enterRemotePassiveMode status [" + ftpClient.getStatus() + "]");
-//            throw new KecakFtpException("enterRemotePassiveMode reply [" + ftpClient.getReplyString() + "]");
-//        }
-//        LogUtil.info(getClass().getName(), "sendFile : enterRemotePassiveMode reply [" + ftpClient.getReplyString() + "]");
-
-//        LogUtil.info(getClass().getName(), "sendFile : pasv");
-//        ftpClient.pasv();
-//        LogUtil.info(getClass().getName(), "sendFile : pasv reply [" + ftpClient.getReplyString() + "]");
-
-        LogUtil.info(getClass().getName(), "sendFile : enterLocalPassiveMode");
         ftpClient.enterLocalPassiveMode();
-        LogUtil.info(getClass().getName(), "sendFile : enterLocalPassiveMode reply [" + ftpClient.getReplyString() + "]");
 
-        LogUtil.info(getClass().getName(), "sendFile : storeFileStream file [" + remote + "]");
         try (OutputStream outputStream = ftpClient.storeFileStream(remote)) {
             if (outputStream != null) {
                 byte[] buffer = new byte[1024];
                 int len;
                 while ((len = local.read(buffer)) > 0) {
-                    LogUtil.info(getClass().getName(), "sendFile : storeFileStream read len[" + len + "]");
-                    outputStream.write(buffer);
+                    outputStream.write(buffer, 0, len);
                 }
             } else {
-                LogUtil.warn(getClass().getName(), "sendFile : storeFileStream reply [" + ftpClient.getReplyCode() + "] [" + ftpClient.getReplyString() + "]");
+                throw new KecakFtpException("storeFileStream reply [" + ftpClient.getReplyString() + "]");
             }
-        } catch (IOException e) {
-            throw new KecakFtpException(e);
         }
 
-        LogUtil.info(getClass().getName(), "sendFile : completePendingCommand");
         if (!ftpClient.completePendingCommand()) {
-            LogUtil.info(getClass().getName(), "sendFile : completePendingCommand reply [" + ftpClient.getReplyString() + "]");
+            throw new KecakFtpException("completePendingCommand reply [" + ftpClient.getReplyString() + "]");
         }
-        LogUtil.warn(getClass().getName(), "sendFile : completePendingCommand status [" + ftpClient.getStatus() + "]");
-
-//        LogUtil.info(getClass().getName(), "sendFile : storeFile remote [" + remote + "]");
-//        if (!ftpClient.storeFile(remote, local)) {
-//            LogUtil.info(getClass().getName(), "storeFile status [" + ftpClient.getStatus() + "]");
-//            Arrays.stream(ftpClient.getReplyStrings()).forEach(s -> LogUtil.warn(getClass().getName(), "storeFile reply [" + s + "]"));
-//            throw new KecakFtpException("storeFile reply [" + ftpClient.getReplyString() + "]");
-//        }
-//        LogUtil.info(getClass().getName(), "sendFile : storeFile reply [" + ftpClient.getReplyString() + "]");
-    }
-
-    public int mkdir(String folder) throws IOException {
-        return ftpClient.mkd(folder);
     }
 }

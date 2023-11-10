@@ -78,16 +78,6 @@ public interface Utils extends Declutter {
             client.sendFile(fileInputStream, targetFullPath);
         } catch (IOException | com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException e) {
             throw new KecakFtpException(e);
-        } finally {
-//            if(client.getFtpClient() instanceof FTPSClient) {
-//                final FTPSClient secureClient = (FTPSClient) client.getFtpClient();
-//                LogUtil.info(getClass().getName(), "sendFile : completePendingCommand");
-//                if (!secureClient.completePendingCommand()) {
-//                    LogUtil.info(getClass().getName(), "sendFile : completePendingCommand reply [" + secureClient.getReplyString() + "]");
-//                } else {
-//                    LogUtil.warn(getClass().getName(), "sendFile : completePendingCommand status [" + secureClient.getStatus() + "]");
-//                }
-//            }
         }
     }
 
