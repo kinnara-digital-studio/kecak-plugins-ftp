@@ -4,6 +4,7 @@ import com.jcraft.jsch.*;
 import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
 import com.kinnarastudio.commons.Declutter;
 import com.kinnarastudio.commons.Try;
+import org.apache.commons.net.ftp.FTPSClient;
 import org.joget.apps.app.dao.DatalistDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.DatalistDefinition;
@@ -26,6 +27,7 @@ import org.kecak.apps.form.model.DataJsonControllerHandler;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
@@ -38,7 +40,7 @@ import java.util.stream.Stream;
  */
 public interface Utils extends Declutter {
     public final static int TIMEOUT = 10000;
-    
+
     default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakFtpException {
         try {
             return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
@@ -47,7 +49,12 @@ public interface Utils extends Declutter {
         }
     }
 
-    default void storeFile(FtpClient ftpClient, File file, String remoteFolder) throws KecakFtpException {
+    @Override
+    default boolean isEmpty(@Nullable Object value) {
+        return Declutter.super.isEmpty(value);
+    }
+
+    default void storeFile(FtpClient client, File file, String remoteFolder) throws KecakFtpException, IOException {
         // store file in bucket
         try (InputStream fileInputStream = Files.newInputStream(file.toPath())) {
             // create folder
@@ -56,20 +63,37 @@ public interface Utils extends Declutter {
                     .map(Arrays::stream)
                     .orElseGet(Stream::empty)
                     .filter(Try.toNegate(String::isEmpty))
-                    .collect(Collectors.joining("/"));
+                    .reduce("", (s1, s2) -> {
+                        String folder = s1 + "/" + s2;
+//                        try {
+//                            int replyCode = client.mkdir(folder);
+//                            LogUtil.info(getClass().getName(), "Folder [" + folder + "] is created in remote server reply code [" + replyCode + "]");
+//                        } catch (IOException e) {
+//                            LogUtil.warn(getClass().getName(), e.getMessage());
+//                        }
+                        return folder;
+                    }, String::concat);
 
             String targetFullPath = path + "/" + file.getName();
-
-            LogUtil.info(getClass().getName(), "Storing file [" + file.getAbsolutePath() + "] into sftp server [" + targetFullPath + "]");
-            ftpClient.sendFile(fileInputStream, targetFullPath);
-        } catch (IOException e) {
+            client.sendFile(fileInputStream, targetFullPath);
+        } catch (IOException | com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException e) {
             throw new KecakFtpException(e);
+        } finally {
+//            if(client.getFtpClient() instanceof FTPSClient) {
+//                final FTPSClient secureClient = (FTPSClient) client.getFtpClient();
+//                LogUtil.info(getClass().getName(), "sendFile : completePendingCommand");
+//                if (!secureClient.completePendingCommand()) {
+//                    LogUtil.info(getClass().getName(), "sendFile : completePendingCommand reply [" + secureClient.getReplyString() + "]");
+//                } else {
+//                    LogUtil.warn(getClass().getName(), "sendFile : completePendingCommand status [" + secureClient.getStatus() + "]");
+//                }
+//            }
         }
     }
 
     default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) throws KecakFtpException {
         // store file in bucket
-        try (InputStream fileInputStream = new FileInputStream(file)) {
+        try (InputStream fileInputStream = Files.newInputStream(file.toPath())) {
             // create folder
             String path = Optional.of("/")
                     .map(remoteFolder::split)
@@ -320,11 +344,11 @@ public interface Utils extends Declutter {
     default Form getForm(@Nonnull AppDefinition appDefinition, @Nonnull String formDefId, @Nonnull final FormData formData) throws KecakFtpException {
         AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
 
-        if(appService == null) {
+        if (appService == null) {
             throw new KecakFtpException("Error retrieving appService");
         }
 
-        if(appDefinition.getAppId() == null || appDefinition.getVersion() == null) {
+        if (appDefinition.getAppId() == null || appDefinition.getVersion() == null) {
             throw new KecakFtpException("Error retrieving appDefinition");
         }
 

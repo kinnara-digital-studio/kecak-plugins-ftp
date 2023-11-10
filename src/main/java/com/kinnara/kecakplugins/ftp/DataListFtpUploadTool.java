@@ -6,6 +6,7 @@ import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
+import org.apache.commons.net.ftp.FTPFile;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.commons.util.FileManager;
@@ -15,14 +16,12 @@ import org.joget.plugin.base.PluginManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> implements Utils, CsvTool {
-    public final static Pattern PORT_PATTERN = Pattern.compile("(?<=:)\\d+");
 
     public final static int DEFAULT_FTP_PORT = 21;
 
@@ -40,7 +39,7 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
                 File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
 
                 if(isDebug) {
-                    LogUtil.info(getClass().getName(), "Uploading from temp file [" + localFile + "] to remote FTP folder ["+ remoteFolder + "]");
+                    LogUtil.info(getClass().getName(), "Uploading temp file [" + localFile + "] to remote folder ["+ remoteFolder + "]");
                 }
 
                 storeFile(storageClient, localFile, remoteFolder);
@@ -55,7 +54,7 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
             } else {
                 throw new KecakFtpException("File format is not supported");
             }
-        } catch (KecakFtpException e) {
+        } catch (KecakFtpException | IOException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
     }
@@ -63,18 +62,10 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     @Override
     protected FtpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
-            final String host = getHost().replaceAll(":\\d+", ""); // remove port
-
-            // extract port from host
-            final Matcher portMatcher = PORT_PATTERN.matcher(getHost());
-            int port;
-            if(portMatcher.find()) {
-                port = Integer.parseInt(portMatcher.group());
-            } else {
-                port = DEFAULT_FTP_PORT;
-            }
-            return new FtpClient(host, port, getUsername(), getPassword());
-        } catch (IOException e) {
+            final String host = getHost();
+            int port = getPort();
+            return new FtpClient(host, port, getUsername(), getPassword(), true);
+        } catch (IOException | GeneralSecurityException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -116,6 +107,9 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
         return String.valueOf(getProperties().get("host"));
     }
 
+    protected int getPort() {
+        return Integer.parseInt(ifEmptyThen(getPropertyString("port"), String.valueOf(DEFAULT_FTP_PORT)));
+    }
     protected String getPassword() {
         return String.valueOf(getProperties().get("password"));
     }

@@ -25,7 +25,9 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.springframework.context.ApplicationContext;
 
 import java.io.*;
+import java.net.URI;
 import java.nio.file.Files;
+import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -62,7 +64,7 @@ public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FtpClient> 
     protected FtpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
             return new FtpClient(getHostname(), getUsername(), getPassword());
-        } catch (IOException e) {
+        } catch (IOException | GeneralSecurityException e) {
             throw new ExternalStorageException(e);
         }
     }
