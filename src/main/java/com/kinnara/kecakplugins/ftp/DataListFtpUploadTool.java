@@ -6,7 +6,6 @@ import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
-import org.apache.commons.net.ftp.FTPFile;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.commons.util.FileManager;
