@@ -35,7 +35,8 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
                 DataList dataList = getDataList(getPropertyString("dataListId"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
-                File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
+                String filenameWithExtension = getFileName().replaceAll("(?<!\\.\\w{3})$", getFileFormat());
+                File localFile = getDataListRow(this, dataList, filters, filenameWithExtension, 0, headerValues);
 
                 if(isDebug) {
                     LogUtil.info(getClass().getName(), "Uploading temp file [" + localFile + "] to remote folder ["+ remoteFolder + "]");
@@ -124,11 +125,11 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
      * @return
      */
     protected String getFileFormat() {
-        return String.valueOf(getProperties().get("fileFormat"));
+        return getPropertyString("fileFormat");
     }
 
     protected String getFileName() {
-        return String.valueOf(getProperties().get("fileName"));
+        return getPropertyString("fileName");
     }
 
     protected Map<String, List<String>> getDataListFilter() {
