@@ -164,6 +164,6 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     }
 
     protected boolean ignoreSslCertificateError() {
-        return "true".equalsIgnoreCase(getPropertyString("strictHostKeyChecking");
+        return "true".equalsIgnoreCase(getPropertyString("strictHostKeyChecking"));
     }
 }
