@@ -4,7 +4,7 @@ import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownlo
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUtil;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
 import org.joget.apps.app.model.AppDefinition;
@@ -38,7 +38,7 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient
         try {
             AppDefinition appDefinition = (AppDefinition) properties.get("appDef");
             if(appDefinition == null && (appDefinition = AppUtil.getCurrentAppDefinition()) == null) {
-                throw new KecakFtpException("Property [appDef] is null");
+                throw new KecakSftpException("Property [appDef] is null");
             }
 
             final File tempOutputFile = getTemporaryDownloadFile();
@@ -53,7 +53,7 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient
             if(!statusWorkflowVariable.isEmpty() && workflowAssignment.isPresent()) {
                 workflowManager.processVariable(workflowAssignment.get().getProcessId(), statusWorkflowVariable, getStatusSucceed(this));
             }
-        } catch (KecakFtpException e) {
+        } catch (KecakSftpException e) {
             if(!statusWorkflowVariable.isEmpty() && workflowAssignment.isPresent()) {
                 workflowManager.processVariable(workflowAssignment.get().getProcessId(), statusWorkflowVariable, getStatusFailed(this));
             }
@@ -66,7 +66,7 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient
         ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
         try {
             return generateSftpChannel(getHost(element), getUsername(element), getPassword(element), getKnownHostsFile(element), true);
-        } catch (KecakFtpException e) {
+        } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
     }

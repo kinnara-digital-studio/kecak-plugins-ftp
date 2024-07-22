@@ -3,10 +3,11 @@ package com.kinnara.kecakplugins.ftp;
 import com.jcraft.jsch.JSchException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
+import com.kinnara.kecakplugins.ftp.exception.FileException;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.commons.util.FileManager;
@@ -47,22 +48,25 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     @Override
     public void execute(SftpClient storageClient) {
         try {
-            if(".csv".equalsIgnoreCase(getFileFormat())) {
+            final String fileName = getFileName();
+            final String fileFormat = getFileFormat();
+            if (".csv".equalsIgnoreCase(fileFormat)) {
                 String remoteFolder = getRemoteFolder();
-                DataList dataList = getDataList(getPropertyString("dataListId"));
+                String dataListId = getPropertyString("dataListId");
+                DataList dataList = getDataList(dataListId).orElseThrow(() -> new KecakSftpException("Error generating dataList [" + dataListId + "]"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
-                File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
+                File localFile = getDataListRow(this, dataList, filters, fileName + fileFormat, 0, headerValues);
 
                 storeFile(storageClient.getChannelSftp(), localFile, remoteFolder);
 
-                if(isDeleteTemporaryFile()) {
+                if (isDeleteTemporaryFile()) {
                     FileManager.deleteFile(localFile.getParentFile());
                 }
             } else {
-                throw new KecakFtpException("File format is not supported");
+                throw new KecakSftpException("File format is not supported");
             }
-        } catch (KecakFtpException e) {
+        } catch (KecakSftpException | FileException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
     }
@@ -126,7 +130,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
                 .map(o -> (Object[]) o)
                 .map(Arrays::stream)
                 .orElseGet(Stream::empty)
-                .map(o -> (Map<String, Object>)o)
+                .map(o -> (Map<String, Object>) o)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(m -> m.getOrDefault("name", "").toString(), m -> Collections.singletonList(m.getOrDefault("value", "").toString())));
         return filters;
@@ -148,7 +152,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
                 .map(o -> (Object[]) o)
                 .map(Arrays::stream)
                 .orElseGet(Stream::empty)
-                .map(o -> (Map<String, Object>)o)
+                .map(o -> (Map<String, Object>) o)
                 .map(m -> Optional.of("value")
                         .map(m::get)
                         .map(String::valueOf)

@@ -3,9 +3,11 @@ package com.kinnara.kecakplugins.ftp;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
 import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
+import com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
+import com.kinnara.kecakplugins.ftp.exception.FileException;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.commons.util.FileManager;
@@ -30,22 +32,23 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     protected void execute(FtpClient storageClient) {
         final boolean isDebug = isDebug();
         try {
-            if(".csv".equalsIgnoreCase(getFileFormat())) {
+            if (".csv".equalsIgnoreCase(getFileFormat())) {
                 String remoteFolder = getRemoteFolder();
-                DataList dataList = getDataList(getPropertyString("dataListId"));
+                String dataListId = getPropertyString("dataListId");
+                DataList dataList = getDataList(dataListId).orElseThrow(() -> new KecakFtpException("Error generating datalist [" + dataListId + "]"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
                 String filenameWithExtension = getFileName().replaceAll("(?<!\\.\\w{3})$", getFileFormat());
                 File localFile = getDataListRow(this, dataList, filters, filenameWithExtension, 0, headerValues);
 
-                if(isDebug) {
-                    LogUtil.info(getClass().getName(), "Uploading temp file [" + localFile + "] to remote folder ["+ remoteFolder + "]");
+                if (isDebug) {
+                    LogUtil.info(getClass().getName(), "Uploading temp file [" + localFile + "] to remote folder [" + remoteFolder + "]");
                 }
 
                 storeFile(storageClient, localFile, remoteFolder);
 
-                if(isDeleteTemporaryFile()) {
-                    if(isDebug) {
+                if (isDeleteTemporaryFile()) {
+                    if (isDebug) {
                         LogUtil.info(getClass().getName(), "Deleting temp file [" + localFile.getParentFile() + "]");
                     }
 
@@ -54,7 +57,7 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
             } else {
                 throw new KecakFtpException("File format is not supported");
             }
-        } catch (KecakFtpException | IOException e) {
+        } catch (KecakFtpException | FileException | IOException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
     }
@@ -110,6 +113,7 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     protected int getPort() {
         return Integer.parseInt(ifEmptyThen(getPropertyString("port"), String.valueOf(DEFAULT_FTP_PORT)));
     }
+
     protected String getPassword() {
         return String.valueOf(getProperties().get("password"));
     }
@@ -138,7 +142,7 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
                 .map(o -> (Object[]) o)
                 .map(Arrays::stream)
                 .orElseGet(Stream::empty)
-                .map(o -> (Map<String, Object>)o)
+                .map(o -> (Map<String, Object>) o)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(m -> m.getOrDefault("name", "").toString(), m -> Collections.singletonList(m.getOrDefault("value", "").toString())));
         return filters;
@@ -155,9 +159,11 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     protected String[] getHeaderValues() {
         return new String[0];
     }
+
     protected boolean isDebug() {
         return "true".equalsIgnoreCase(getPropertyString("debug"));
     }
+
     @Override
     public String getCsvDelimiter() {
         return getPropertyString("columnDelimiter");

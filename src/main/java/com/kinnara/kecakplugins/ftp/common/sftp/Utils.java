@@ -2,9 +2,10 @@ package com.kinnara.kecakplugins.ftp.common.sftp;
 
 import com.jcraft.jsch.*;
 import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
+import com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException;
+import com.kinnara.kecakplugins.ftp.exception.FileException;
 import com.kinnarastudio.commons.Declutter;
 import com.kinnarastudio.commons.Try;
-import org.apache.commons.net.ftp.FTPSClient;
 import org.joget.apps.app.dao.DatalistDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.DatalistDefinition;
@@ -41,11 +42,11 @@ import java.util.stream.Stream;
 public interface Utils extends Declutter {
     public final static int TIMEOUT = 10000;
 
-    default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakFtpException {
+    default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
         try {
             return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
         } catch (JSchException e) {
-            throw new KecakFtpException(e);
+            throw new KecakSftpException(e);
         }
     }
 
@@ -54,7 +55,7 @@ public interface Utils extends Declutter {
         return Declutter.super.isEmpty(value);
     }
 
-    default void storeFile(FtpClient client, File file, String remoteFolder) throws KecakFtpException, IOException {
+    default void storeFile(FtpClient client, File file, String remoteFolder) throws IOException, KecakFtpException {
         // store file in bucket
         try (InputStream fileInputStream = Files.newInputStream(file.toPath())) {
             // create folder
@@ -76,22 +77,16 @@ public interface Utils extends Declutter {
 
             String targetFullPath = path + "/" + file.getName();
             client.sendFile(fileInputStream, targetFullPath);
-        } catch (IOException | com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException e) {
+        } catch (IOException e) {
             throw new KecakFtpException(e);
-        } finally {
-//            if(client.getFtpClient() instanceof FTPSClient) {
-//                final FTPSClient secureClient = (FTPSClient) client.getFtpClient();
-//                LogUtil.info(getClass().getName(), "sendFile : completePendingCommand");
-//                if (!secureClient.completePendingCommand()) {
-//                    LogUtil.info(getClass().getName(), "sendFile : completePendingCommand reply [" + secureClient.getReplyString() + "]");
-//                } else {
-//                    LogUtil.warn(getClass().getName(), "sendFile : completePendingCommand status [" + secureClient.getStatus() + "]");
-//                }
-//            }
         }
     }
 
-    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) throws KecakFtpException {
+    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) throws KecakSftpException {
+        if(file == null) {
+            throw new KecakSftpException("File is unavailable");
+        }
+
         // store file in bucket
         try (InputStream fileInputStream = Files.newInputStream(file.toPath())) {
             // create folder
@@ -114,22 +109,22 @@ public interface Utils extends Declutter {
             LogUtil.info(getClass().getName(), "Storing file [" + file.getAbsolutePath() + "] into sftp server [" + targetFullPath + "]");
             channelSftp.put(fileInputStream, targetFullPath);
         } catch (IOException | SftpException e) {
-            throw new KecakFtpException(e);
+            throw new KecakSftpException(e);
         }
     }
 
-    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder, Element element, FormData formData) throws KecakFtpException {
+    default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder, Element element, FormData formData) throws KecakSftpException {
         assert this instanceof Element;
         String path = remoteFolder.replaceAll("^\\./", "") + "/" + FileUtil.getUploadPath(element, formData.getPrimaryKeyValue()).replaceAll("^\\./", "").replaceAll("^.+wflow/", "");
         storeFile(channelSftp, file, path.replaceAll("/+", "/"));
     }
 
-    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName, Element element, FormData formData) throws KecakFtpException {
+    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName, Element element, FormData formData) throws KecakSftpException {
         String path = remoteFolder.replaceAll("^\\./", "") + "/" + FileUtil.getUploadPath(element, formData.getPrimaryKeyValue()).replaceAll("^\\./", "").replaceAll("^.+wflow/", "");
         return loadFile(channelSftp, path, fileName);
     }
 
-    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName) throws KecakFtpException {
+    default InputStream loadFile(ChannelSftp channelSftp, String remoteFolder, String fileName) throws KecakSftpException {
         String filePath = remoteFolder.replaceAll("/+", "/").replaceAll("/$", "") + "/" + fileName;
         return loadFile(channelSftp, filePath);
     }
@@ -140,12 +135,12 @@ public interface Utils extends Declutter {
      * @return
      * @throws SftpException
      */
-    default InputStream loadFile(ChannelSftp channelSftp, String fullFilePath) throws KecakFtpException {
+    default InputStream loadFile(ChannelSftp channelSftp, String fullFilePath) throws KecakSftpException {
         try {
             LogUtil.info(getClass().getName(), "Loading file from sftp server [" + fullFilePath + "]");
             return channelSftp.get(fullFilePath);
         } catch (SftpException e) {
-            throw new KecakFtpException(e.getMessage() + " [" + fullFilePath + "]", e);
+            throw new KecakSftpException(e.getMessage() + " [" + fullFilePath + "]", e);
         }
     }
 
@@ -157,7 +152,7 @@ public interface Utils extends Declutter {
      * @throws SftpException
      */
     @Nonnull
-    default DataList getDataList(String datalistId) throws KecakFtpException {
+    default Optional<DataList> getDataList(String datalistId) {
         ApplicationContext appContext = AppUtil.getApplicationContext();
         AppDefinition appDef = AppUtil.getCurrentAppDefinition();
 
@@ -169,8 +164,7 @@ public interface Utils extends Declutter {
                 .map(DatalistDefinition::getJson)
                 .map(this::processHashVariable)
                 .map(dataListService::fromJson)
-                .map(peekMap(d -> d.setPageSize(DataList.MAXIMUM_PAGE_SIZE)))
-                .orElseThrow(() -> new KecakFtpException("DataList [" + datalistId + "] not found"));
+                .map(peekMap(d -> d.setPageSize(DataList.MAXIMUM_PAGE_SIZE)));
     }
 
     /**
@@ -202,21 +196,23 @@ public interface Utils extends Declutter {
      */
 
     @Nonnull
-    default File getDataListRow(@Nonnull CsvTool pluginTool, @Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues) throws KecakFtpException {
+    default File getDataListRow(@Nonnull CsvTool pluginTool, @Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues) throws FileException {
         getCollectFilters(dataList, filters);
 
         DataListCollection<Map<String, Object>> rows = dataList.getRows();
         if (rows == null) {
-            throw new KecakFtpException("Error retrieving row from dataList [" + dataList.getId() + "]");
+            throw new FileException("Error retrieving row from dataList [" + dataList.getId() + "]");
         }
 
         String tempDirPath = FileManager.getBaseDirectory();
         File tempDir = new File(tempDirPath + UUID.randomUUID());
         if (!tempDir.exists() && !tempDir.mkdir()) {
-            throw new KecakFtpException("Error creating temporary directory [" + tempDirPath + "]");
+            throw new FileException("Error creating temporary directory [" + tempDirPath + "]");
         }
 
         File file = new File(tempDir, fileName);
+
+        LogUtil.info(getClass().getName(), "Writing to file [" + file.getAbsolutePath() + "]");
         try (PrintWriter writer = new PrintWriter(file)) {
             IntStream.iterate(0, i -> i + 1).limit(skipLines)
                     .boxed()
@@ -241,7 +237,7 @@ public interface Utils extends Declutter {
                     .map(s -> processLine(pluginTool.getCsvDelimiter(), s))
                     .forEach(writer::println);
         } catch (FileNotFoundException e) {
-            throw new KecakFtpException(e);
+            throw new FileException(e);
         }
 
         return file;
@@ -341,23 +337,23 @@ public interface Utils extends Declutter {
         }
     }
 
-    default Form getForm(@Nonnull AppDefinition appDefinition, @Nonnull String formDefId, @Nonnull final FormData formData) throws KecakFtpException {
+    default Form getForm(@Nonnull AppDefinition appDefinition, @Nonnull String formDefId, @Nonnull final FormData formData) throws KecakSftpException {
         AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
 
         if (appService == null) {
-            throw new KecakFtpException("Error retrieving appService");
+            throw new KecakSftpException("Error retrieving appService");
         }
 
         if (appDefinition.getAppId() == null || appDefinition.getVersion() == null) {
-            throw new KecakFtpException("Error retrieving appDefinition");
+            throw new KecakSftpException("Error retrieving appDefinition");
         }
 
         final Form form = Optional.ofNullable(appService.viewDataForm(appDefinition.getAppId(), appDefinition.getVersion().toString(), formDefId, null, null, null, formData, null, null))
-                .orElseThrow(() -> new KecakFtpException("Form [" + formDefId + "] in app [" + appDefinition.getAppId() + "] version [" + appDefinition.getVersion() + "] not available"));
+                .orElseThrow(() -> new KecakSftpException("Form [" + formDefId + "] in app [" + appDefinition.getAppId() + "] version [" + appDefinition.getVersion() + "] not available"));
 
         // check form permission
         if (!form.isAuthorize(formData)) {
-            throw new KecakFtpException("User [" + WorkflowUtil.getCurrentUsername() + "] doesn't have permission to open this form");
+            throw new KecakSftpException("User [" + WorkflowUtil.getCurrentUsername() + "] doesn't have permission to open this form");
         }
 
         formData.addRequestParameterValues(DataJsonControllerHandler.PARAMETER_DATA_JSON_CONTROLLER, new String[]{DataJsonControllerHandler.PARAMETER_DATA_JSON_CONTROLLER});

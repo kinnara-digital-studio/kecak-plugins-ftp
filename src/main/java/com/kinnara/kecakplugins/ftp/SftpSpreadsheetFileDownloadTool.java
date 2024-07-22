@@ -2,7 +2,7 @@ package com.kinnara.kecakplugins.ftp;
 
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
@@ -43,7 +43,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
 
             AppDefinition appDefinition = (AppDefinition) properties.get("appDef");
             if(appDefinition == null && (appDefinition = AppUtil.getCurrentAppDefinition()) == null) {
-                throw new KecakFtpException("Property [appDef] is null");
+                throw new KecakSftpException("Property [appDef] is null");
             }
 
             Form form = getForm(appDefinition, getFormDefId(), new FormData());
@@ -53,7 +53,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusSucceed());
             }
-        } catch (KecakFtpException | IOException e) {
+        } catch (KecakSftpException | IOException e) {
             if(!statusWorkflowVariable.isEmpty()) {
                 workflowManager.processVariable(workflowAssignment.getProcessId(), statusWorkflowVariable, getStatusFailed());
             }
@@ -65,7 +65,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     public SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
             return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
-        } catch (KecakFtpException e) {
+        } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
     }

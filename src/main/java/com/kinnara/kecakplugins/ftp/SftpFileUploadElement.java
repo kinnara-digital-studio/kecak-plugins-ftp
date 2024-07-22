@@ -3,7 +3,7 @@ package com.kinnara.kecakplugins.ftp;
 import com.jcraft.jsch.JSchException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
+import com.kinnara.kecakplugins.ftp.common.sftp.KecakSftpException;
 import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
 import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
 import org.joget.apps.app.service.AppUtil;
@@ -37,7 +37,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
     protected InputStream loadFile(SftpClient client, Element element, FormData formData, String fileName) throws ExternalStorageException {
         try {
             return loadFile(client.getChannelSftp(), getRemoteFolder(element), fileName, element, formData);
-        } catch (KecakFtpException e) {
+        } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -46,7 +46,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
     protected void storeFile(SftpClient client, File file, Element element, FormData formData) throws ExternalStorageException {
         try {
             storeFile(client.getChannelSftp(), file, getRemoteFolder(element), element, formData);
-        } catch (KecakFtpException e) {
+        } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
     }
