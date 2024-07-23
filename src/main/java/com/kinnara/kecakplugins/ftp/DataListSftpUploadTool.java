@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient> implements Utils, CsvTool {
     public final static String CSV_DELIMITER = ";";
 
+    File localFile = null;
+
     @Override
     public String getName() {
         return getLabel();
@@ -48,25 +50,16 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     @Override
     public void execute(SftpClient storageClient) {
         try {
-            final String fileName = getFileName();
-            final String fileFormat = getFileFormat();
-            if (".csv".equalsIgnoreCase(fileFormat)) {
-                String remoteFolder = getRemoteFolder();
-                String dataListId = getPropertyString("dataListId");
-                DataList dataList = getDataList(dataListId).orElseThrow(() -> new KecakSftpException("Error generating dataList [" + dataListId + "]"));
-                Map<String, List<String>> filters = getDataListFilter();
-                String[] headerValues = getHeaderValues();
-                File localFile = getDataListRow(this, dataList, filters, fileName + fileFormat, 0, headerValues);
-
-                storeFile(storageClient.getChannelSftp(), localFile, remoteFolder);
-
-                if (isDeleteTemporaryFile()) {
-                    FileManager.deleteFile(localFile.getParentFile());
-                }
-            } else {
-                throw new KecakSftpException("File format is not supported");
+            if (localFile == null) {
+                throw new KecakSftpException("Temporary file not found");
             }
-        } catch (KecakSftpException | FileException e) {
+
+            String remoteFolder = getRemoteFolder();
+            storeFile(storageClient.getChannelSftp(), localFile, remoteFolder);
+            if (isDeleteTemporaryFile()) {
+                FileManager.deleteFile(localFile.getParentFile());
+            }
+        } catch (KecakSftpException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
     }
@@ -89,8 +82,16 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     @Override
     protected SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
+            // generate temporary file
+            final String fileFormat = getFileFormat();
+            if (".csv".equalsIgnoreCase(fileFormat)) {
+                localFile = generateTemporaryFile();
+            } else {
+                throw new KecakSftpException("File format is not supported");
+            }
+
             return new SftpClient(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
-        } catch (JSchException e) {
+        } catch (JSchException | KecakSftpException | FileException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -168,5 +169,16 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     @Override
     public String getCsvDelimiter() {
         return getPropertyString("columnDelimiter");
+    }
+
+    protected File generateTemporaryFile() throws FileException, KecakSftpException {
+        final String fileFormat = getFileFormat();
+        final String fileName = getFileName();
+        String dataListId = getPropertyString("dataListId");
+        DataList dataList = getDataList(dataListId)
+                .orElseThrow(() -> new KecakSftpException("Error generating dataList [" + dataListId + "]"));
+        Map<String, List<String>> filters = getDataListFilter();
+        String[] headerValues = getHeaderValues();
+        return getDataListRow(this, dataList, filters, fileName + fileFormat, 0, headerValues);
     }
 }
