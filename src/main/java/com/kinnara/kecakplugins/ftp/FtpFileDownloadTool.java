@@ -61,7 +61,7 @@ public class FtpFileDownloadTool extends ExternalStorageDownloadTool<FtpClient> 
     }
 
     @Override
-    protected FtpClient generateClient(Plugin plugin) throws ExternalStorageException {
+    protected FtpClient getClientInstance(Plugin plugin) throws ExternalStorageException {
         try {
             return new FtpClient(getHostname(), getUsername(), getPassword());
         } catch (IOException | GeneralSecurityException e) {

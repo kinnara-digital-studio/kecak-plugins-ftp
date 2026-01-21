@@ -1,5 +1,6 @@
 package com.kinnara.kecakplugins.ftp;
 
+import com.jcraft.jsch.JSchException;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
 import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
@@ -62,7 +63,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     }
 
     @Override
-    public SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
+    public SftpClient getClientInstance(Plugin plugin) throws ExternalStorageException {
         try {
             return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
         } catch (KecakFtpException e) {
