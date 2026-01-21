@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 public interface Utils extends Declutter {
     public final static int TIMEOUT = 10000;
 
+    @Deprecated
     default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
         try {
             return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
@@ -196,7 +197,7 @@ public interface Utils extends Declutter {
      */
 
     @Nonnull
-    default File getDataListRow(@Nonnull CsvTool pluginTool, @Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues) throws FileException {
+    default File getDataListRow(@Nonnull CsvTool pluginTool, @Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues, String[] footerValues) throws FileException {
         getCollectFilters(dataList, filters);
 
         DataListCollection<Map<String, Object>> rows = dataList.getRows();
@@ -213,16 +214,19 @@ public interface Utils extends Declutter {
         File file = new File(tempDir, fileName);
 
         LogUtil.info(getClass().getName(), "Writing to file [" + file.getAbsolutePath() + "]");
+        
         try (PrintWriter writer = new PrintWriter(file)) {
             IntStream.iterate(0, i -> i + 1).limit(skipLines)
                     .boxed()
                     .map(i -> "")
                     .forEach(writer::println);
 
-            if (headerValues != null && headerValues.length > 0) {
-                Optional.of(headerValues)
-                        .map(s -> String.join(pluginTool.getCsvDelimiter(), s))
-                        .ifPresent(writer::println);
+            String delimiter = pluginTool.getCsvDelimiter();
+
+            if (headerValues != null) {
+                for (String row : headerValues) {
+                    writer.println(row);
+                }
             }
 
             rows.stream()
@@ -234,8 +238,14 @@ public interface Utils extends Declutter {
                             .map(c -> formatValue(dataList, m, c))
                             .map(String::valueOf)
                             .toArray(String[]::new))
-                    .map(s -> processLine(pluginTool.getCsvDelimiter(), s))
+                    .map(s -> processLine(delimiter, s))
                     .forEach(writer::println);
+
+            if(footerValues != null) {
+                for (String row : footerValues) {
+                    writer.println(row);
+                }
+            }
         } catch (FileNotFoundException e) {
             throw new FileException(e);
         }

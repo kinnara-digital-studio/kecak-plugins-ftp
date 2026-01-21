@@ -38,12 +38,12 @@ public class SftpClient implements AutoCloseable, Utils {
 
     @Override
     public void close() throws Exception {
-        if(channelSftp.isConnected()) {
+        if(channelSftp != null && channelSftp.isConnected()) {
             LogUtil.info(getClass().getName(), "Disconnecting from SFTP channel");
             channelSftp.disconnect();
         }
 
-        if(jschSession.isConnected()) {
+        if(jschSession != null && jschSession.isConnected()) {
             LogUtil.info(getClass().getName(), "Disconnecting session from host [" + host + "]");
             jschSession.disconnect();
         }

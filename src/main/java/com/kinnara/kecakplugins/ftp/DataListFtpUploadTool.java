@@ -14,6 +14,7 @@ import org.joget.commons.util.FileManager;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.Plugin;
 import org.joget.plugin.base.PluginManager;
+import org.joget.workflow.model.WorkflowAssignment;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +39,9 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
                 DataList dataList = getDataList(dataListId).orElseThrow(() -> new KecakFtpException("Error generating datalist [" + dataListId + "]"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
+                String[] footerValues = getFooterValues();
                 String filenameWithExtension = getFileName().replaceAll("(?<!\\.\\w{3})$", getFileFormat());
-                File localFile = getDataListRow(this, dataList, filters, filenameWithExtension, 0, headerValues);
+                File localFile = getDataListRow(this, dataList, filters, filenameWithExtension, 0, headerValues, footerValues);
 
                 if (isDebug) {
                     LogUtil.info(getClass().getName(), "Uploading temp file [" + localFile + "] to remote folder [" + remoteFolder + "]");
@@ -157,7 +159,25 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     }
 
     protected String[] getHeaderValues() {
-        return new String[0];
+        WorkflowAssignment assignment = null;
+        return Optional.ofNullable((Object[])getProperty("headerValues"))
+                .map(Arrays::stream)
+                .orElseGet(Stream::empty)
+                .map(String::valueOf)
+                .map(s -> AppUtil.processHashVariable(s, assignment, null, null))
+                .toArray(String[]::new);
+    }
+
+    protected String[] getFooterValues() {
+        WorkflowAssignment assignment = null;
+
+        return Optional.ofNullable((Object[])getProperty("footerValues"))
+                .map(Arrays::stream)
+                .orElseGet(Stream::empty)
+                .map(String::valueOf)
+                .map(s -> AppUtil.processHashVariable(s, assignment, null, null))
+                .toArray(String[]::new);
+
     }
 
     protected boolean isDebug() {

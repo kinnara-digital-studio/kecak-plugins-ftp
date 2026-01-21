@@ -162,6 +162,23 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
                 .toArray(String[]::new);
     }
 
+    protected String[] getFooterValues() {
+        WorkflowAssignment assignment = (WorkflowAssignment) getProperties().get("workflowAssignment");
+
+        return Optional.of("headerValues")
+                .map(this::getProperty)
+                .map(o -> (Object[]) o)
+                .map(Arrays::stream)
+                .orElseGet(Stream::empty)
+                .map(o -> (Map<String, Object>) o)
+                .map(m -> Optional.of("value")
+                        .map(m::get)
+                        .map(String::valueOf)
+                        .map(s -> AppUtil.processHashVariable(s, assignment, null, null))
+                        .orElse(""))
+                .toArray(String[]::new);
+    }
+
     protected boolean isDeleteTemporaryFile() {
         return "true".equalsIgnoreCase(getPropertyString("deleteTemporaryFile"));
     }
@@ -179,6 +196,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
                 .orElseThrow(() -> new KecakSftpException("Error generating dataList [" + dataListId + "]"));
         Map<String, List<String>> filters = getDataListFilter();
         String[] headerValues = getHeaderValues();
-        return getDataListRow(this, dataList, filters, fileName + fileFormat, 0, headerValues);
+        String[] footerValues = getFooterValues();
+        return getDataListRow(this, dataList, filters, fileName + fileFormat, 0, headerValues, footerValues);
     }
 }
