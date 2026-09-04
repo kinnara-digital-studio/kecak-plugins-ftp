@@ -41,14 +41,10 @@ import java.util.stream.Stream;
 public interface Utils extends Declutter {
     public final static int TIMEOUT = 10000;
 
-<<<<<<< HEAD
-    default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakFtpException {
-=======
     @Deprecated
     default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
->>>>>>> b6917ce (add footer)
         try {
-            return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
+            return new SftpClient(host, 22, username, password, null, pathKnownHosts, isStrictHostKeyChecking);
         } catch (JSchException e) {
             throw new KecakFtpException(e);
         }

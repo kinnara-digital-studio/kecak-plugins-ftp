@@ -66,8 +66,9 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient
     public SftpClient getClientInstance(Plugin plugin) throws ExternalStorageException {
         ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
         try {
-            return generateSftpChannel(getHost(element), getUsername(element), getPassword(element), getKnownHostsFile(element), true);
-        } catch (KecakFtpException e) {
+//            return generateSftpChannel(getHost(element), getUsername(element), getPassword(element), getKnownHostsFile(element), true);
+            return new SftpClient(getHost(element), getUsername(element), getPassword(element), null, getKnownHostsFile(element), true);
+        } catch (JSchException e) {
             throw new ExternalStorageException(e);
         }
     }

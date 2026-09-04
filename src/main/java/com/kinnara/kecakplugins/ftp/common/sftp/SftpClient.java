@@ -13,13 +13,21 @@ public class SftpClient implements AutoCloseable, Utils {
     private final Session jschSession;
     private final ChannelSftp channelSftp;
 
-    public SftpClient(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws JSchException {
+    public SftpClient(String host, int port, String username, String password, String keyFile, String pathKnownHosts, boolean isStrictHostKeyChecking) throws JSchException {
         this.host = host;
 
         JSch jsch = new JSch();
         jsch.setKnownHosts(pathKnownHosts);
-        jschSession = jsch.getSession(username, host);
-        jschSession.setPassword(password);
+        
+        if (keyFile != null && !keyFile.trim().isEmpty() && !keyFile.equals("null")) {
+            jsch.addIdentity(keyFile);
+        }
+
+        jschSession = jsch.getSession(username, host, port);
+        
+        if (password != null && !password.trim().isEmpty() && !password.equals("null")) {
+            jschSession.setPassword(password);
+        }
 
         if (!isStrictHostKeyChecking) {
             Properties config = new Properties();
