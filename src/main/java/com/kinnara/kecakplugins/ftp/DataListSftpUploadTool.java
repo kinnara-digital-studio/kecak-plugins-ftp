@@ -90,9 +90,17 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
                 throw new KecakSftpException("File format is not supported");
             }
 
-            return new SftpClient(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
+            return new SftpClient(getHost(), getPort(), getUsername(), getPassword(), getKeyFile(), getKnownHostsFile(), isStrictHostKeyChecking());
         } catch (JSchException | KecakSftpException | FileException e) {
             throw new ExternalStorageException(e);
+        }
+    }
+
+    protected int getPort() {
+        try {
+            return Integer.parseInt(String.valueOf(getProperties().get("port")));
+        } catch (NumberFormatException e) {
+            return 22; // default SFTP port
         }
     }
 
@@ -102,6 +110,10 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
 
     protected String getPassword() {
         return String.valueOf(getProperties().get("password"));
+    }
+
+    protected String getKeyFile() {
+        return String.valueOf(getProperties().get("keyFile"));
     }
 
     protected String getUsername() {
@@ -165,7 +177,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     protected String[] getFooterValues() {
         WorkflowAssignment assignment = (WorkflowAssignment) getProperties().get("workflowAssignment");
 
-        return Optional.of("headerValues")
+        return Optional.of("footerValues")
                 .map(this::getProperty)
                 .map(o -> (Object[]) o)
                 .map(Arrays::stream)

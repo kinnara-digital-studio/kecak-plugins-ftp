@@ -7,25 +7,25 @@
         "type": "header"
       },
       {
-        "name" : "dataListId",
-        "label" : "@@ftp.dataListId@@",
-        "type" : "selectbox",
-        "required" : "true",
-        "options_ajax" : "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options"
+        "name": "dataListId",
+        "label": "@@ftp.dataListId@@",
+        "type": "selectbox",
+        "required": "true",
+        "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/datalist/options"
       },
       {
-        "name" : "dataListFilter",
+        "name": "dataListFilter",
         "label": "@@ftp.dataListFilter@@",
         "type": "grid",
-        "columns" : [
+        "columns": [
           {
             "key": "name",
-            "label" : "@@ftp.name@@",
+            "label": "@@ftp.name@@",
             "required": "true"
           },
           {
-            "key" : "value",
-            "label" : "@@ftp.value@@"
+            "key": "value",
+            "label": "@@ftp.value@@"
           }
         ]
       },
@@ -54,7 +54,7 @@
       },
       {
         "name": "columnDelimiter",
-        "label":"@@ftp.columnDelimiter@@",
+        "label": "@@ftp.columnDelimiter@@",
         "type": "textfield",
         "value": ";",
         "required": "true"
@@ -62,6 +62,17 @@
       {
         "name": "headerValues",
         "label": "@@ftp.headerValues@@",
+        "type": "grid",
+        "columns": [
+          {
+            "key": "value",
+            "label": "Value"
+          }
+        ]
+      },
+      {
+        "name": "footerValues",
+        "label": "@@ftp.footerValues@@",
         "type": "grid",
         "columns": [
           {
@@ -93,14 +104,46 @@
         "type": "textfield"
       },
       {
+        "name": "port",
+        "label": "@@ftp.port@@",
+        "type": "textfield",
+        "value": "22",
+        "regex_validation": "\\d+"
+      },
+      {
         "name": "username",
         "label": "@@ftp.username@@",
         "type": "textfield"
       },
       {
+        "name": "logonType",
+        "label": "Logon Type",
+        "type": "radio",
+        "options": [
+          {
+            "value": "password",
+            "label": "Password"
+          },
+          {
+            "value": "keyFile",
+            "label": "Key File"
+          }
+        ],
+        "value": "password"
+      },
+      {
         "name": "password",
         "label": "@@ftp.password@@",
-        "type": "password"
+        "type": "password",
+        "control_field": "logonType",
+        "control_value": "password"
+      },
+      {
+        "name": "keyFile",
+        "label": "Key File Path",
+        "type": "textfield",
+        "control_field": "logonType",
+        "control_value": "keyFile"
       },
       {
         "name": "remoteFolder",

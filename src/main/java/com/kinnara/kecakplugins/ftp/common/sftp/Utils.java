@@ -45,7 +45,7 @@ public interface Utils extends Declutter {
     @Deprecated
     default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
         try {
-            return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
+            return new SftpClient(host, 22, username, password, null, pathKnownHosts, isStrictHostKeyChecking);
         } catch (JSchException e) {
             throw new KecakSftpException(e);
         }
