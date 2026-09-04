@@ -28,14 +28,46 @@
         "type": "textfield"
       },
       {
+        "name": "port",
+        "label": "@@ftp.port@@",
+        "type": "textfield",
+        "value": "22",
+        "regex_validation": "\\d+"
+      },
+      {
         "name": "username",
         "label": "Username",
         "type": "textfield"
       },
       {
+        "name": "logonType",
+        "label": "Logon Type",
+        "type": "radio",
+        "options": [
+          {
+            "value": "password",
+            "label": "Password"
+          },
+          {
+            "value": "keyFile",
+            "label": "Key File"
+          }
+        ],
+        "value": "password"
+      },
+      {
         "name": "password",
         "label": "Password",
-        "type": "password"
+        "type": "password",
+        "control_field": "logonType",
+        "control_value": "password"
+      },
+      {
+        "name": "keyFile",
+        "label": "Key File Path",
+        "type": "textfield",
+        "control_field": "logonType",
+        "control_value": "keyFile"
       },
       {
         "name": "remoteFolder",

@@ -66,8 +66,7 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient
     public SftpClient getClientInstance(Plugin plugin) throws ExternalStorageException {
         ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
         try {
-//            return generateSftpChannel(getHost(element), getUsername(element), getPassword(element), getKnownHostsFile(element), true);
-            return new SftpClient(getHost(element), 22, getUsername(element), getPassword(element), null, getKnownHostsFile(element), true);
+            return new SftpClient(getHost(element), getPort(element), getUsername(element), getPassword(element), getKeyFile(element), getKnownHostsFile(element), true);
         } catch (JSchException e) {
             throw new ExternalStorageException(e);
         }
@@ -121,6 +120,18 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient
         }
 
         throw new ExternalStorageException("Cannot read file [" + file.getAbsolutePath() + "]");
+    }
+
+    public int getPort(PropertyEditable prop) {
+        try {
+            return Integer.parseInt(prop.getPropertyString("port"));
+        } catch (NumberFormatException e) {
+            return 22; // default SFTP port
+        }
+    }
+
+    public String getKeyFile(PropertyEditable prop) {
+        return prop.getPropertyString("keyFile");
     }
 
     protected String getUsername(PropertyEditable prop) {

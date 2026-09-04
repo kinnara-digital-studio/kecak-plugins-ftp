@@ -27,7 +27,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
     protected SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
         try {
-            return new SftpClient(getHost(element), 22, getUsername(element), getPassword(element), null, getKnownHostsFile(element), true);
+            return new SftpClient(getHost(element), getPort(element), getUsername(element), getPassword(element), getKeyFile(element), getKnownHostsFile(element), true);
         } catch (JSchException e) {
           throw new ExternalStorageException(e);
         }
@@ -49,6 +49,18 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
         } catch (KecakSftpException e) {
             throw new ExternalStorageException(e);
         }
+    }
+
+    public int getPort(PropertyEditable prop) {
+        try {
+            return Integer.parseInt(prop.getPropertyString("port"));
+        } catch (NumberFormatException e) {
+            return 22; // default SFTP port
+        }
+    }
+
+    public String getKeyFile(PropertyEditable prop) {
+        return prop.getPropertyString("keyFile");
     }
 
     public String getUsername(PropertyEditable prop) {

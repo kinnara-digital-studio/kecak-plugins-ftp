@@ -65,8 +65,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     @Override
     public SftpClient getClientInstance(Plugin plugin) throws ExternalStorageException {
         try {
-//            return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
-            return new SftpClient(getHost(), 22, getUsername(), getPassword(), null, getKnownHostsFile(), isStrictHostKeyChecking());
+            return new SftpClient(getHost(), getPort(), getUsername(), getPassword(), getKeyFile(), getKnownHostsFile(), isStrictHostKeyChecking());
         } catch (JSchException e) {
             throw new ExternalStorageException(e);
         }
@@ -105,12 +104,24 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
         return AppUtil.readPluginResource(getClassName(), "/properties/SftpSpreadsheetFileDownloadTool.json", null, true, "/messages/Ftp");
     }
 
+    protected int getPort() {
+        try {
+            return Integer.parseInt(getPropertyString("port"));
+        } catch (NumberFormatException e) {
+            return 22; // default SFTP port
+        }
+    }
+
     protected String getHost() {
         return getPropertyString("host");
     }
 
     protected String getPassword() {
         return getPropertyString("password");
+    }
+
+    protected String getKeyFile() {
+        return getPropertyString("keyFile");
     }
 
     protected String getUsername() {
