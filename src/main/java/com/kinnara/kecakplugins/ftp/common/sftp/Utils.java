@@ -42,7 +42,7 @@ public interface Utils extends Declutter {
     public final static int TIMEOUT = 10000;
 
     @Deprecated
-    default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakSftpException {
+    default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakFtpException {
         try {
             return new SftpClient(host, 22, username, password, null, pathKnownHosts, isStrictHostKeyChecking);
         } catch (JSchException e) {

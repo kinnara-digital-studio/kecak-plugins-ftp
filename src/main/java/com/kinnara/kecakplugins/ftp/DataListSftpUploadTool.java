@@ -52,8 +52,8 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
                 DataList dataList = getDataList(getPropertyString("dataListId"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
-                File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
-
+                String[] footerValues = getFooterValues();
+                File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues, footerValues);
                 storeFile(storageClient.getChannelSftp(), localFile, remoteFolder);
 
                 if(isDeleteTemporaryFile()) {
@@ -85,16 +85,8 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     @Override
     protected SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
-            // generate temporary file
-            final String fileFormat = getFileFormat();
-            if (".csv".equalsIgnoreCase(fileFormat)) {
-                localFile = generateTemporaryFile();
-            } else {
-                throw new KecakSftpException("File format is not supported");
-            }
-
-            return new SftpClient(getHost(), getUsername(), getPassword(), getKeyFile(), getKnownHostsFile(), isStrictHostKeyChecking());
-        } catch (JSchException | KecakSftpException | FileException e) {
+            return new SftpClient(getHost(), getPort(), getUsername(), getPassword(), getKeyFile(), getKnownHostsFile(), isStrictHostKeyChecking());
+        } catch (JSchException e) {
             throw new ExternalStorageException(e);
         }
     }
@@ -201,16 +193,5 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     @Override
     public String getCsvDelimiter() {
         return getPropertyString("columnDelimiter");
-    }
-    protected File generateTemporaryFile() throws FileException, KecakSftpException {
-        final String fileFormat = getFileFormat();
-        final String fileName = getFileName();
-        String dataListId = getPropertyString("dataListId");
-        DataList dataList = getDataList(dataListId)
-                .orElseThrow(() -> new KecakSftpException("Error generating dataList [" + dataListId + "]"));
-        Map<String, List<String>> filters = getDataListFilter();
-        String[] headerValues = getHeaderValues();
-        String[] footerValues = getFooterValues();
-        return getDataListRow(this, dataList, filters, fileName + fileFormat, 0, headerValues, footerValues);
     }
 }
