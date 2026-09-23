@@ -71,6 +71,17 @@
         ]
       },
       {
+        "name": "footerValues",
+        "label": "@@ftp.footerValues@@",
+        "type": "grid",
+        "columns": [
+          {
+            "key": "value",
+            "label": "Value"
+          }
+        ]
+      },
+      {
         "name": "deleteTemporaryFile",
         "label": "@@ftp.deleteTemporaryFile@@",
         "type": "checkbox",

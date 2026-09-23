@@ -19,7 +19,7 @@ public abstract class ExternalStorageDownloadTool<T extends AutoCloseable> exten
     public final Object execute(Map properties) {
         this.properties = properties;
 
-        try(T storageClient = generateClient(this)) {
+        try(T storageClient = getClientInstance(this)) {
             execute(storageClient);
         } catch (Exception e) {
             LogUtil.error(getClassName(), e, e.getMessage());
@@ -40,5 +40,5 @@ public abstract class ExternalStorageDownloadTool<T extends AutoCloseable> exten
      */
     protected abstract void execute(T storageClient) throws ExternalStorageException;
 
-    protected abstract T generateClient(Plugin plugin) throws ExternalStorageException;
+    protected abstract T getClientInstance(Plugin plugin) throws ExternalStorageException;
 }

@@ -42,7 +42,7 @@ public interface Utils extends Declutter {
     @Deprecated
     default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakFtpException {
         try {
-            return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
+            return new SftpClient(host, 22, username, password, null, pathKnownHosts, isStrictHostKeyChecking);
         } catch (JSchException e) {
             throw new KecakFtpException(e);
         }
@@ -183,6 +183,9 @@ public interface Utils extends Declutter {
         }
 
         File file = new File(tempDir, fileName);
+
+        LogUtil.info(getClass().getName(), "Writing to file [" + file.getAbsolutePath() + "]");
+        
         try (PrintWriter writer = new PrintWriter(file)) {
             IntStream.iterate(0, i -> i + 1).limit(skipLines)
                     .boxed()
