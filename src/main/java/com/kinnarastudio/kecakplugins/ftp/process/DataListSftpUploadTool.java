@@ -1,12 +1,12 @@
-package com.kinnara.kecakplugins.ftp;
+package com.kinnarastudio.kecakplugins.ftp.process;
 
 import com.jcraft.jsch.JSchException;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
-import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
-import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
-import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
+import com.kinnarastudio.kecakplugins.ftp.common.exceptions.KecakFtpException;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.SftpClient;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.CsvTool;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.Utils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.commons.util.FileManager;
@@ -52,7 +52,8 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
                 DataList dataList = getDataList(getPropertyString("dataListId"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
-                File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues);
+                String[] footerValues = getFooterValues();
+                File localFile = getDataListRow(this, dataList, filters, getFileName() + getFileFormat(), 0, headerValues, footerValues);
 
                 storeFile(storageClient.getChannelSftp(), localFile, remoteFolder);
 
@@ -144,6 +145,23 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
         WorkflowAssignment assignment = (WorkflowAssignment) getProperties().get("workflowAssignment");
 
         return Optional.of("headerValues")
+                .map(getProperties()::get)
+                .map(o -> (Object[]) o)
+                .map(Arrays::stream)
+                .orElseGet(Stream::empty)
+                .map(o -> (Map<String, Object>)o)
+                .map(m -> Optional.of("value")
+                        .map(m::get)
+                        .map(String::valueOf)
+                        .map(s -> AppUtil.processHashVariable(s, assignment, null, null))
+                        .orElse(""))
+                .toArray(String[]::new);
+    }
+
+    protected String[] getFooterValues() {
+        WorkflowAssignment assignment = (WorkflowAssignment) getProperties().get("workflowAssignment");
+
+        return Optional.of("footerValues")
                 .map(getProperties()::get)
                 .map(o -> (Object[]) o)
                 .map(Arrays::stream)

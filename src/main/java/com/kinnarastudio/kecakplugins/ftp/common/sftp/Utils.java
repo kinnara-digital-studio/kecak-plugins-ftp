@@ -1,10 +1,8 @@
-package com.kinnara.kecakplugins.ftp.common.sftp;
+package com.kinnarastudio.kecakplugins.ftp.common.sftp;
 
 import com.jcraft.jsch.*;
-import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
+import com.kinnarastudio.kecakplugins.ftp.common.exceptions.KecakFtpException;
 import com.kinnarastudio.commons.Declutter;
-import com.kinnarastudio.commons.Try;
-import org.apache.commons.net.ftp.FTPSClient;
 import org.joget.apps.app.dao.DatalistDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.DatalistDefinition;
@@ -41,6 +39,7 @@ import java.util.stream.Stream;
 public interface Utils extends Declutter {
     public final static int TIMEOUT = 10000;
 
+    @Deprecated
     default SftpClient generateSftpChannel(String host, String username, String password, String pathKnownHosts, boolean isStrictHostKeyChecking) throws KecakFtpException {
         try {
             return new SftpClient(host, username, password, pathKnownHosts, isStrictHostKeyChecking);
@@ -54,34 +53,11 @@ public interface Utils extends Declutter {
         return Declutter.super.isEmpty(value);
     }
 
-    default void storeFile(FtpClient client, File file, String remoteFolder) throws KecakFtpException, IOException {
-        // store file in bucket
-        try (InputStream fileInputStream = Files.newInputStream(file.toPath())) {
-            // create folder
-            String path = Optional.of("/")
-                    .map(remoteFolder::split)
-                    .map(Arrays::stream)
-                    .orElseGet(Stream::empty)
-                    .filter(Try.toNegate(String::isEmpty))
-                    .reduce("", (s1, s2) -> {
-                        String folder = s1 + "/" + s2;
-//                        try {
-//                            int replyCode = client.mkdir(folder);
-//                            LogUtil.info(getClass().getName(), "Folder [" + folder + "] is created in remote server reply code [" + replyCode + "]");
-//                        } catch (IOException e) {
-//                            LogUtil.warn(getClass().getName(), e.getMessage());
-//                        }
-                        return folder;
-                    }, String::concat);
-
-            String targetFullPath = path + "/" + file.getName();
-            client.sendFile(fileInputStream, targetFullPath);
-        } catch (IOException | com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException e) {
-            throw new KecakFtpException(e);
-        }
-    }
-
     default void storeFile(ChannelSftp channelSftp, File file, String remoteFolder) throws KecakFtpException {
+        if(file == null) {
+            throw new KecakFtpException("File is unavailable");
+        }
+
         // store file in bucket
         try (InputStream fileInputStream = Files.newInputStream(file.toPath())) {
             // create folder
@@ -192,7 +168,7 @@ public interface Utils extends Declutter {
      */
 
     @Nonnull
-    default File getDataListRow(@Nonnull CsvTool pluginTool, @Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues) throws KecakFtpException {
+    default File getDataListRow(@Nonnull CsvTool pluginTool, @Nonnull DataList dataList, @Nonnull final Map<String, List<String>> filters, String fileName, int skipLines, String[] headerValues, String[] footerValues) throws KecakFtpException {
         getCollectFilters(dataList, filters);
 
         DataListCollection<Map<String, Object>> rows = dataList.getRows();
@@ -213,10 +189,12 @@ public interface Utils extends Declutter {
                     .map(i -> "")
                     .forEach(writer::println);
 
-            if (headerValues != null && headerValues.length > 0) {
-                Optional.of(headerValues)
-                        .map(s -> String.join(pluginTool.getCsvDelimiter(), s))
-                        .ifPresent(writer::println);
+            String delimiter = pluginTool.getCsvDelimiter();
+
+            if (headerValues != null) {
+                for (String row : headerValues) {
+                    writer.println(row);
+                }
             }
 
             rows.stream()
@@ -228,8 +206,14 @@ public interface Utils extends Declutter {
                             .map(c -> formatValue(dataList, m, c))
                             .map(String::valueOf)
                             .toArray(String[]::new))
-                    .map(s -> processLine(pluginTool.getCsvDelimiter(), s))
+                    .map(s -> processLine(delimiter, s))
                     .forEach(writer::println);
+
+            if(footerValues != null) {
+                for (String row : footerValues) {
+                    writer.println(row);
+                }
+            }
         } catch (FileNotFoundException e) {
             throw new KecakFtpException(e);
         }

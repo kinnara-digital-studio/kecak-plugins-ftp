@@ -1,4 +1,4 @@
-package com.kinnara.kecakplugins.ftp.common.externalstorage;
+package com.kinnarastudio.kecakplugins.ftp.common.externalstorage;
 
 import org.joget.apps.app.dao.FormDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
@@ -11,6 +11,7 @@ import org.joget.commons.util.FileManager;
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.Plugin;
 import org.joget.plugin.base.PluginWebSupport;
+import org.kecak.apps.exception.ApiException;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -155,30 +156,35 @@ public abstract class ExternalStorageFileElement<T extends AutoCloseable> extend
             formData.setPrimaryKeyValue(primaryKey);
 
             FormRowSet rows = form.getLoadBinder().load(form, primaryKey, formData);
-            if (rows != null && !rows.isEmpty()) {
-                FormRow row = rows.get(0);
-                for (Object fieldId : row.keySet()) {
-                    String compareValue = fileName;
-                    if (compareValue.endsWith(FileManager.THUMBNAIL_EXT)) {
-                        compareValue = compareValue.replace(FileManager.THUMBNAIL_EXT, "");
-                    }
 
-                    String value = row.getProperty(fieldId.toString());
-
-                    if (value.equals(compareValue)
-                            || (value.contains(";")
-                            && (value.startsWith(compareValue + ";")
-                            || value.contains(";" + compareValue + ";")
-                            || value.endsWith(";" + compareValue)))) {
-                        Element field = FormUtil.findElement(fieldId.toString(), form, formData);
-                        if (field instanceof FileDownloadSecurity) {
-                            FileDownloadSecurity security = (FileDownloadSecurity) field;
-                            if(!security.isDownloadAllowed(request.getParameterMap()))
-                                throw new RestApiException(HttpServletResponse.SC_UNAUTHORIZED, "Not authorized");
-                        }
-                    }
-                }
+            if(rows == null || rows.isEmpty()) {
+                throw new RestApiException(HttpServletResponse.SC_NOT_FOUND, "Record not found");
             }
+
+//            if (rows != null && !rows.isEmpty()) {
+//                FormRow row = rows.get(0);
+//                for (Object fieldId : row.keySet()) {
+//                    String compareValue = fileName;
+//                    if (compareValue.endsWith(FileManager.THUMBNAIL_EXT)) {
+//                        compareValue = compareValue.replace(FileManager.THUMBNAIL_EXT, "");
+//                    }
+//
+//                    String value = row.getProperty(fieldId.toString());
+//
+//                    if (value.equals(compareValue)
+//                            || (value.contains(";")
+//                            && (value.startsWith(compareValue + ";")
+//                            || value.contains(";" + compareValue + ";")
+//                            || value.endsWith(";" + compareValue)))) {
+//                        Element field = FormUtil.findElement(fieldId.toString(), form, formData);
+//                        if (field instanceof FileDownloadSecurity) {
+//                            FileDownloadSecurity security = (FileDownloadSecurity) field;
+//                            if(!security.isDownloadAllowed(request.getParameterMap()))
+//                                throw new RestApiException(HttpServletResponse.SC_UNAUTHORIZED, "Not authorized");
+//                        }
+//                    }
+//                }
+//            }
 
             Element element = FormUtil.findElement(elementId, form, formData);
             try(T client = generateClient(element)) {
@@ -231,7 +237,7 @@ public abstract class ExternalStorageFileElement<T extends AutoCloseable> extend
                 .orElse(defaultValue);
     }
 
-    protected abstract InputStream loadFile(T client, Element element, FormData formData, String fileName) throws ExternalStorageException;
+    protected abstract InputStream loadFile(T client, Element element, FormData formData, String fileName) throws ExternalStorageException, IOException;
 
     protected abstract void storeFile(T client, File file, Element element, FormData formData) throws ExternalStorageException;
 }

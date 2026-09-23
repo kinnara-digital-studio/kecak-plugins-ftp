@@ -1,11 +1,12 @@
-package com.kinnara.kecakplugins.ftp;
+package com.kinnarastudio.kecakplugins.ftp.process;
 
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
-import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
-import com.kinnara.kecakplugins.ftp.common.sftp.CsvTool;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
-import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageUploadTool;
+import com.kinnarastudio.kecakplugins.ftp.common.ftp.FtpClient;
+import com.kinnarastudio.kecakplugins.ftp.common.exceptions.KecakFtpException;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.CsvTool;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.Utils;
+import com.kinnarastudio.commons.Try;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.datalist.model.DataList;
 import org.joget.commons.util.FileManager;
@@ -15,6 +16,8 @@ import org.joget.plugin.base.PluginManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,8 +38,9 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
                 DataList dataList = getDataList(getPropertyString("dataListId"));
                 Map<String, List<String>> filters = getDataListFilter();
                 String[] headerValues = getHeaderValues();
+                String[] footerValues = getFooterValues();
                 String filenameWithExtension = getFileName().replaceAll("(?<!\\.\\w{3})$", getFileFormat());
-                File localFile = getDataListRow(this, dataList, filters, filenameWithExtension, 0, headerValues);
+                File localFile = getDataListRow(this, dataList, filters, filenameWithExtension, 0, headerValues, footerValues);
 
                 if(isDebug) {
                     LogUtil.info(getClass().getName(), "Uploading temp file [" + localFile + "] to remote folder ["+ remoteFolder + "]");
@@ -54,7 +58,7 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
             } else {
                 throw new KecakFtpException("File format is not supported");
             }
-        } catch (KecakFtpException | IOException e) {
+        } catch (IOException | KecakFtpException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
     }
@@ -155,6 +159,11 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
     protected String[] getHeaderValues() {
         return new String[0];
     }
+
+    protected String[] getFooterValues() {
+        return new String[0];
+    }
+
     protected boolean isDebug() {
         return "true".equalsIgnoreCase(getPropertyString("debug"));
     }
@@ -165,5 +174,32 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
 
     protected boolean ignoreSslCertificateError() {
         return "true".equalsIgnoreCase(getPropertyString("strictHostKeyChecking"));
+    }
+
+    protected void storeFile(FtpClient client, File file, String remoteFolder) throws IOException, KecakFtpException {
+        // store file in bucket
+        try (InputStream fileInputStream = Files.newInputStream(file.toPath())) {
+            // create folder
+            String path = Optional.of("/")
+                    .map(remoteFolder::split)
+                    .map(Arrays::stream)
+                    .orElseGet(Stream::empty)
+                    .filter(Try.toNegate(String::isEmpty))
+                    .reduce("", (s1, s2) -> {
+                        String folder = s1 + "/" + s2;
+//                        try {
+//                            int replyCode = client.mkdir(folder);
+//                            LogUtil.info(getClass().getName(), "Folder [" + folder + "] is created in remote server reply code [" + replyCode + "]");
+//                        } catch (IOException e) {
+//                            LogUtil.warn(getClass().getName(), e.getMessage());
+//                        }
+                        return folder;
+                    }, String::concat);
+
+            String targetFullPath = path + "/" + file.getName();
+            client.sendFile(fileInputStream, targetFullPath);
+        } catch (IOException e) {
+            throw new KecakFtpException(e);
+        }
     }
 }

@@ -1,11 +1,11 @@
-package com.kinnara.kecakplugins.ftp;
+package com.kinnarastudio.kecakplugins.ftp.form;
 
 import com.jcraft.jsch.JSchException;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
-import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
-import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
+import com.kinnarastudio.kecakplugins.ftp.common.exceptions.KecakFtpException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.SftpClient;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.Utils;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.FormData;
@@ -23,6 +23,8 @@ import java.util.ResourceBundle;
  * @author aristo
  */
 public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient> implements Utils {
+    public final static String LABEL = "SFTP File Upload";
+
     @Override
     protected SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
@@ -95,7 +97,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
 
     @Override
     public String getName() {
-        return getLabel();
+        return LABEL;
     }
 
     @Override
@@ -113,7 +115,7 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
 
     @Override
     public String getLabel() {
-        return "SFTP File Upload";
+        return LABEL;
     }
 
     @Override
@@ -123,6 +125,6 @@ public class SftpFileUploadElement extends ExternalStorageFileElement<SftpClient
 
     @Override
     public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClassName(), "/properties/SftpFileUpload.json", null, true, "/messages/Ftp").replaceAll("\"", "'");
+        return AppUtil.readPluginResource(getClassName(), "/properties/form/SftpFileUpload.json", null, true, "/messages/Ftp").replaceAll("\"", "'");
     }
 }

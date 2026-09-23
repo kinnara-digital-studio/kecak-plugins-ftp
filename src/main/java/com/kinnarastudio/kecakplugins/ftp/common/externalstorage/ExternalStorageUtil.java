@@ -1,4 +1,4 @@
-package com.kinnara.kecakplugins.ftp.common.externalstorage;
+package com.kinnarastudio.kecakplugins.ftp.common.externalstorage;
 
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
@@ -6,7 +6,6 @@ import org.joget.apps.form.lib.FileUpload;
 import org.joget.apps.form.model.*;
 import org.joget.apps.form.service.FormService;
 import org.joget.apps.form.service.FormUtil;
-import org.joget.commons.util.LogUtil;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.WorkflowProcessLink;
 import org.joget.workflow.model.service.WorkflowManager;
@@ -16,7 +15,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;

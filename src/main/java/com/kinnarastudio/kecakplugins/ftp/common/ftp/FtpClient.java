@@ -1,5 +1,6 @@
-package com.kinnara.kecakplugins.ftp.common.ftp;
+package com.kinnarastudio.kecakplugins.ftp.common.ftp;
 
+import com.kinnarastudio.kecakplugins.ftp.common.exceptions.KecakFtpException;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;

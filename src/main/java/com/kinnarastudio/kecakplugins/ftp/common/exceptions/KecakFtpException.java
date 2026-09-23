@@ -1,6 +1,6 @@
-package com.kinnara.kecakplugins.ftp.common.ftp;
+package com.kinnarastudio.kecakplugins.ftp.common.exceptions;
 
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
 
 public class KecakFtpException extends ExternalStorageException {
 

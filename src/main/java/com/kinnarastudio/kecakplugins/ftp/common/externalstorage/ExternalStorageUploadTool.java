@@ -1,4 +1,4 @@
-package com.kinnara.kecakplugins.ftp.common.externalstorage;
+package com.kinnarastudio.kecakplugins.ftp.common.externalstorage;
 
 import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;

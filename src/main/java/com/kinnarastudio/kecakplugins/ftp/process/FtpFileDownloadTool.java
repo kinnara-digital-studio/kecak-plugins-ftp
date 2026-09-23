@@ -1,10 +1,10 @@
-package com.kinnara.kecakplugins.ftp;
+package com.kinnarastudio.kecakplugins.ftp.process;
 
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUtil;
-import com.kinnara.kecakplugins.ftp.common.ftp.FtpClient;
-import com.kinnara.kecakplugins.ftp.common.ftp.KecakFtpException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageUtil;
+import com.kinnarastudio.kecakplugins.ftp.common.ftp.FtpClient;
+import com.kinnarastudio.kecakplugins.ftp.common.exceptions.KecakFtpException;
 import org.joget.apps.app.dao.FormDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.FormDefinition;
@@ -25,7 +25,6 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.springframework.context.ApplicationContext;
 
 import java.io.*;
-import java.net.URI;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.util.Map;

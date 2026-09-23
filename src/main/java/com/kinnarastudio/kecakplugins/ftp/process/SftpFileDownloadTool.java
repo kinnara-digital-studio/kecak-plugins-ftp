@@ -1,12 +1,12 @@
-package com.kinnara.kecakplugins.ftp;
+package com.kinnarastudio.kecakplugins.ftp.process;
 
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
-import com.kinnara.kecakplugins.ftp.common.externalstorage.ExternalStorageUtil;
-import com.kinnara.kecakplugins.ftp.common.sftp.KecakFtpException;
-import com.kinnara.kecakplugins.ftp.common.sftp.SftpClient;
-import com.kinnara.kecakplugins.ftp.common.sftp.Utils;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageDownloadTool;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageException;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageFileElement;
+import com.kinnarastudio.kecakplugins.ftp.common.externalstorage.ExternalStorageUtil;
+import com.kinnarastudio.kecakplugins.ftp.common.exceptions.KecakFtpException;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.SftpClient;
+import com.kinnarastudio.kecakplugins.ftp.common.sftp.Utils;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.Element;

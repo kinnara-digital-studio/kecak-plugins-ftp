@@ -1,15 +1,17 @@
-package com.kinnara.kecakplugins.ftp.common.externalstorage;
+package com.kinnarastudio.kecakplugins.ftp.common.externalstorage;
 
-public class RestApiException extends Exception {
+import org.kecak.apps.exception.ApiException;
+
+public class RestApiException extends ApiException {
     private int errorCode;
 
     public RestApiException(int errorCode, String message) {
-        super(message);
+        super(errorCode, message);
         this.errorCode = errorCode;
     }
 
     public RestApiException(int errorCode, Throwable cause) {
-        super(cause);
+        super(errorCode, cause);
         this.errorCode = errorCode;
     }
 
