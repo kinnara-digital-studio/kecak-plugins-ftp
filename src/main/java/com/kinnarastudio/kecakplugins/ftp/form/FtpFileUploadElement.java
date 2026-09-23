@@ -55,7 +55,7 @@ public class FtpFileUploadElement extends ExternalStorageFileElement<FtpClient> 
     @Override
     protected InputStream loadFile(FtpClient client, Element element, FormData formData, String fileName) throws ExternalStorageException {
         try {
-            File file = loadRemoteFile(client, getRemoteFolder(element) + "/" + fileName, formData);
+            File file = loadRemoteFile(client, getRemoteFolder(element) + "/" + fileName, element, formData);
             return Files.newInputStream(file.toPath());
         } catch (IOException e) {
             throw new ExternalStorageException(e);
@@ -148,7 +148,7 @@ public class FtpFileUploadElement extends ExternalStorageFileElement<FtpClient> 
         return AppUtil.readPluginResource(getClassName(), "/properties/form/FtpFileUpload.json", null, true, "/messages/Ftp").replaceAll("\"", "'");
     }
 
-    protected File loadRemoteFile(FtpClient client, String remoteFilePath, FormData formData) throws ExternalStorageException {
+    protected File loadRemoteFile(FtpClient client, String remoteFilePath, Element element, FormData formData) throws ExternalStorageException {
         final File tempOutputFile = getTemporaryDownloadFile(remoteFilePath);
         try (OutputStream fos = Files.newOutputStream(tempOutputFile.toPath());
              OutputStream bos = new BufferedOutputStream(fos)) {
@@ -156,8 +156,8 @@ public class FtpFileUploadElement extends ExternalStorageFileElement<FtpClient> 
             LogUtil.info(getClassName(), "Retrieving file from remote [" + remoteFilePath + "] to local [" + tempOutputFile.getAbsolutePath() + "]");
             client.retrieveFile(remoteFilePath, bos);
 
-            Form form = FormUtil.findRootForm(this);
-            LogUtil.info(getClassName(), "Storing file [" + tempOutputFile.getAbsolutePath() + "] to form [" + form.getPropertyString("id") + "] element [" + this.getPropertyString("id") + "]");
+//            Form form = FormUtil.findRootForm(this);
+//            LogUtil.info(getClassName(), "Storing file [" + tempOutputFile.getAbsolutePath() + "] to form [" + form.getPropertyString("id") + "] element [" + this.getPropertyString("id") + "]");
             ExternalStorageUtil.storeFileInFileUpload(this, tempOutputFile, formData);
 
             return tempOutputFile;
