@@ -158,7 +158,7 @@ public class FtpFileUploadElement extends ExternalStorageFileElement<FtpClient> 
 
 //            Form form = FormUtil.findRootForm(this);
 //            LogUtil.info(getClassName(), "Storing file [" + tempOutputFile.getAbsolutePath() + "] to form [" + form.getPropertyString("id") + "] element [" + this.getPropertyString("id") + "]");
-            ExternalStorageUtil.storeFileInFileUpload(this, tempOutputFile, formData);
+//            ExternalStorageUtil.storeFileInFileUpload(this, tempOutputFile, formData);
 
             return tempOutputFile;
         } catch (IOException e) {
