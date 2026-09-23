@@ -62,7 +62,7 @@ public class SftpSpreadsheetFileDownloadTool extends ExternalStorageDownloadTool
     }
 
     @Override
-    public SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
+    protected SftpClient getClientInstance(Plugin plugin) throws ExternalStorageException {
         try {
             return generateSftpChannel(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
         } catch (KecakFtpException e) {

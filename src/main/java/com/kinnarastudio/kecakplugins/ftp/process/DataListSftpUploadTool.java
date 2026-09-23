@@ -86,7 +86,7 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
     @Override
     protected SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
         try {
-            return new SftpClient(getHost(), getUsername(), getPassword(), getKnownHostsFile(), isStrictHostKeyChecking());
+            return new SftpClient(getHost(), getPort(), getUsername(), getPassword(), getKeyFile(), getKnownHostsFile(), isStrictHostKeyChecking());
         } catch (JSchException e) {
             throw new ExternalStorageException(e);
         }
@@ -96,12 +96,19 @@ public class DataListSftpUploadTool extends ExternalStorageUploadTool<SftpClient
         return String.valueOf(getProperties().get("host"));
     }
 
+    protected int getPort() {
+        return Integer.parseInt(String.valueOf(getProperties().get("port")));
+    }
+
     protected String getPassword() {
         return String.valueOf(getProperties().get("password"));
     }
 
     protected String getUsername() {
         return String.valueOf(getProperties().get("username"));
+    }
+    protected String getKeyFile() {
+        return String.valueOf(getProperties().get("keyFile"));
     }
 
     protected String getKnownHostsFile() {

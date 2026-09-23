@@ -179,10 +179,6 @@ public class DataListFtpUploadTool extends ExternalStorageUploadTool<FtpClient> 
 
     }
 
-    protected String[] getFooterValues() {
-        return new String[0];
-    }
-
     protected boolean isDebug() {
         return "true".equalsIgnoreCase(getPropertyString("debug"));
     }

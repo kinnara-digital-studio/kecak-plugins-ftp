@@ -62,7 +62,7 @@ public class SftpFileDownloadTool extends ExternalStorageDownloadTool<SftpClient
     }
 
     @Override
-    public SftpClient generateClient(Plugin plugin) throws ExternalStorageException {
+    protected SftpClient getClientInstance(Plugin plugin) throws ExternalStorageException {
         ExternalStorageFileElement<SftpClient> element = (ExternalStorageFileElement<SftpClient>) plugin;
         try {
             return generateSftpChannel(getHost(element), getUsername(element), getPassword(element), getKnownHostsFile(element), true);
