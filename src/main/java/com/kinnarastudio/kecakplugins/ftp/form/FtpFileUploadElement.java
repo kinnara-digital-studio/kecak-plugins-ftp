@@ -55,7 +55,6 @@ public class FtpFileUploadElement extends ExternalStorageFileElement<FtpClient> 
     @Override
     protected InputStream loadFile(FtpClient client, Element element, FormData formData, String fileName) throws ExternalStorageException {
         try {
-            fileName = "file_example_JPG_100kB.jpg";
             File file = loadRemoteFile(client, getRemoteFolder(element) + "/" + fileName, formData);
             return Files.newInputStream(file.toPath());
         } catch (IOException e) {

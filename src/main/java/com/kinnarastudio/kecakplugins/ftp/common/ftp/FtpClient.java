@@ -49,8 +49,8 @@ public class FtpClient implements AutoCloseable {
 
         LogUtil.info(getClass().getName(), "Logged in as [" + username + "] with reply code [" + ftpClient.getReplyCode() + "] status [" + ftpClient.getStatus() + "]");
 
-//        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-//        ftpClient.setControlEncoding("UTF-8");
+        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        ftpClient.setControlEncoding("UTF-8");
 
         if (ftpClient instanceof FTPSClient) {
             ftpClient.sendCommand("OPTS", "UTF8 ON");
@@ -86,7 +86,7 @@ public class FtpClient implements AutoCloseable {
             throw new KecakFtpException("changeWorkingDirectory reply [" + ftpClient.getReplyString() + "]");
         }
 
-        if (!ftpClient.setFileType(FTP.ASCII_FILE_TYPE)) {
+        if (!ftpClient.setFileType(FTP.BINARY_FILE_TYPE)) {
             throw new KecakFtpException("setFileType reply [" + ftpClient.getReplyString() + "]");
         }
 
